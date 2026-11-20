@@ -1,3 +1,4 @@
+# Every page and action in the app, mapped to the view that handles it.
 from django.urls import path
 
 from . import views

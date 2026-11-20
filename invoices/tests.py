@@ -1,3 +1,10 @@
+"""
+Automated tests for Ledgerly, run by Django's test runner.
+
+They cover the money maths, invoice numbering and statuses, the emails and
+their PDF attachments, pagination, and that every page loads.
+"""
+
 from datetime import timedelta
 from decimal import Decimal
 

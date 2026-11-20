@@ -1,3 +1,4 @@
+{# One labelled form field with its help text and errors. Every form in the app uses it so they all look the same. #}
 <div class="field {{ extra_class }}{% if field.errors %} has-error{% endif %}">
   <label for="{{ field.id_for_label }}">{{ field.label }}</label>
   {{ field }}

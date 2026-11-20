@@ -1,3 +1,10 @@
+"""
+Page views for Ledgerly: the dashboard, clients, invoices and settings.
+
+Pages that change data (sending, reminding, changing status, deleting) only
+accept POST requests, so a link or a page refresh can't trigger them.
+"""
+
 from datetime import timedelta
 
 from django.contrib import messages

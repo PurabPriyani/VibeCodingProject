@@ -1,9 +1,8 @@
 """
-Fills the app with believable sample data so the dashboard has something
-to show during a demo.
-
-    python manage.py seed_demo           # only runs on an empty database
-    python manage.py seed_demo --reset   # wipes clients and invoices first
+Management command that fills the database with realistic sample clients and
+invoices spread over the last six months, so every part of the dashboard has
+data to show. It won't touch a database that already has invoices unless the
+--reset flag is given, which clears clients and invoices first.
 """
 
 import random
@@ -120,7 +119,8 @@ class Command(BaseCommand):
         invoice.paid_at = paid_on
         invoice.save()
 
-        # created_at is filled in automatically with "now", which made the
-        # activity timeline say an invoice was created after it was sent.
+        # created_at is set automatically to the moment the row is saved. For
+        # back-dated sample invoices that would put "Created" after "Sent" in
+        # the activity timeline, so it's moved back to the issue date.
         created = timezone.make_aware(datetime.combine(day, time(9, 0)))
         Invoice.objects.filter(pk=invoice.pk).update(created_at=created)

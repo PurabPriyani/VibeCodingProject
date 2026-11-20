@@ -1,3 +1,5 @@
+# Registers the models with Django's built-in admin site (/admin/), which is
+# handy for checking the raw data while developing.
 from django.contrib import admin
 
 from .models import BusinessProfile, Client, Invoice, InvoiceItem

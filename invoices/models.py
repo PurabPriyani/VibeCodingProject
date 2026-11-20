@@ -1,3 +1,10 @@
+"""
+Database tables for Ledgerly.
+
+BusinessProfile holds the seller's details, Client is who gets billed,
+Invoice is the bill itself, and InvoiceItem is one line on an invoice.
+"""
+
 from datetime import timedelta
 from decimal import Decimal
 
@@ -44,6 +51,8 @@ class BusinessProfile(models.Model):
 
 
 class Client(models.Model):
+    """Someone the business sends invoices to."""
+
     name = models.CharField(max_length=120)
     company = models.CharField(max_length=120, blank=True)
     email = models.EmailField()
@@ -66,6 +75,11 @@ class Client(models.Model):
 
 
 class Invoice(models.Model):
+    """
+    One invoice. It moves from Draft to Sent to Paid. "Overdue" isn't a
+    stored status: it's a Sent invoice whose due date has passed.
+    """
+
     DRAFT = "draft"
     SENT = "sent"
     PAID = "paid"
@@ -115,7 +129,7 @@ class Invoice(models.Model):
 
     @staticmethod
     def next_number(year):
-        """INV-2026-001, INV-2026-002 ... the counter starts again each year."""
+        """Next number in the INV-<year>-<count> series. The count restarts at 001 each year."""
         prefix = f"INV-{year}-"
         last = (
             Invoice.objects.filter(number__startswith=prefix)
@@ -163,6 +177,8 @@ class Invoice(models.Model):
 
 
 class InvoiceItem(models.Model):
+    """One line on an invoice: what was done, how many, and the price each."""
+
     invoice = models.ForeignKey(Invoice, on_delete=models.CASCADE, related_name="items")
     description = models.CharField(max_length=200)
     quantity = models.DecimalField(

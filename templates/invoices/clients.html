@@ -72,6 +72,7 @@
 </section>
 {% endif %}
 
+{# One modal for both adding and editing. When editing, JavaScript fills in the client's details and the hidden client_id. #}
 <dialog class="modal" id="client-modal" {% if open_modal %}data-open="true"{% endif %}>
   <form method="post" novalidate>
     {% csrf_token %}

@@ -58,8 +58,8 @@ TEMPLATES = [
 WSGI_APPLICATION = "config.wsgi.application"
 
 
-# SQL Server is the main database. If someone just wants to try the app
-# without SQL Server installed, they can set DB_ENGINE=sqlite in .env.
+# SQL Server is the main database. DB_ENGINE=sqlite switches to a local SQLite
+# file instead, so the project can also run on a machine without SQL Server.
 if os.getenv("DB_ENGINE", "mssql") == "sqlite":
     DATABASES = {
         "default": {
@@ -103,9 +103,9 @@ TIME_ZONE = "America/Toronto"
 USE_I18N = True
 USE_TZ = True
 
-# Email. Put SMTP details in .env to send real emails (see .env.example).
-# Without them, emails are printed in the terminal instead of being sent,
-# which is handy for testing without spamming anyone.
+# Email. When EMAIL_HOST is set, real emails go out over SMTP. When it's
+# empty, Django's console backend prints each email in the terminal instead,
+# so the app can be tested without sending anything to real clients.
 EMAIL_HOST = os.getenv("EMAIL_HOST", "")
 EMAIL_PORT = int(os.getenv("EMAIL_PORT", "587"))
 EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER", "")

@@ -28,8 +28,8 @@ document.querySelectorAll("form.js-confirm").forEach(function (form) {
   });
 });
 
-// Print button. Save as PDF is in the browser's print dialog, so there's
-// no PDF library to install.
+// Print button. The print stylesheet hides everything except the invoice,
+// and the browser's print dialog can also save it as a PDF.
 document.querySelectorAll(".js-print").forEach(function (button) {
   button.addEventListener("click", function () {
     window.print();

@@ -1,6 +1,6 @@
 // The 3D cash flow scene at the top of the dashboard.
-// Bars are real monthly totals, the floating card is the latest invoice,
-// and a few coins orbit around it. It's decoration, so it stays light:
+// Bars are the real monthly totals, the floating card shows this month's
+// collected amount, and a few coins orbit around it. It's decoration, so it stays light:
 // it pauses when the tab is hidden and stays still for people who've
 // asked their system to reduce motion.
 

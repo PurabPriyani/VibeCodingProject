@@ -1,3 +1,8 @@
+"""
+Forms for the business profile, clients and invoices. Django uses these to
+build the HTML inputs and to check what the user typed before saving it.
+"""
+
 from django import forms
 from django.forms import inlineformset_factory
 
@@ -44,6 +49,7 @@ class InvoiceForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        # Replaces Django's default "---------" in the client dropdown.
         self.fields["client"].empty_label = "Choose a client"
 
 

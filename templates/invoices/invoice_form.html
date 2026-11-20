@@ -57,6 +57,7 @@
         {% endfor %}
       </div>
 
+      {# A blank row that JavaScript copies when "Add line" is clicked. Django's __prefix__ placeholder is replaced with the new row's number. #}
       <template id="item-template">
         {% include "invoices/_item_row.html" with item=formset.empty_form %}
       </template>

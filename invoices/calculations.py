@@ -1,8 +1,8 @@
 """
 All the money maths lives here so it's in one place and easy to test.
 
-Decimal is used instead of float on purpose: 0.1 + 0.2 in float gives
-0.30000000000000004, which is not something you want on an invoice.
+Decimal is used instead of float on purpose. Floats can't store most cent
+values exactly, so totals built from them can drift by a fraction of a cent.
 """
 
 from decimal import Decimal, ROUND_HALF_UP
@@ -11,7 +11,7 @@ CENT = Decimal("0.01")
 
 
 def money(value):
-    """Round to the nearest cent, the way a cashier would (2.345 -> 2.35)."""
+    """Round to the nearest cent. Exact half cents round up, as people expect on a bill."""
     return Decimal(value).quantize(CENT, rounding=ROUND_HALF_UP)
 
 

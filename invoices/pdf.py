@@ -1,10 +1,11 @@
 """
 Builds the invoice as a PDF so it can be attached to emails.
 
-ReportLab draws the PDF directly in Python, so there's nothing extra to
-install on Windows (no browser engine or system libraries). The layout
-follows the invoice page in the app: business on the left, invoice
-number on the right, then the client, the line items and the totals.
+ReportLab draws the PDF directly in Python. It installs with pip on Windows
+and doesn't need a browser engine or extra system libraries, which many
+HTML-to-PDF tools do. The layout follows the invoice page in the app:
+business on the left, invoice number on the right, then the client, the
+line items and the totals.
 """
 
 from io import BytesIO

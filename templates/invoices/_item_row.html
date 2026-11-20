@@ -1,3 +1,4 @@
+{# One row in the invoice builder. Removing a row ticks its hidden DELETE box, and Django deletes that item when the form is saved. #}
 <div class="item-row js-item-row{% if item.DELETE.value %} is-removed{% endif %}">
   {{ item.id }}
   <div class="item-cell {% if item.description.errors %}has-error{% endif %}">{{ item.description }}</div>
