@@ -97,6 +97,8 @@ h3 {
   display: grid;
   grid-template-columns: 236px minmax(0, 1fr);
   min-height: 100vh;
+  /* Paints the sidebar colour all the way down, even on long pages. */
+  background: linear-gradient(to right, var(--sidebar) 235px, var(--line) 235px 236px, transparent 236px);
 }
 
 .sidebar {
