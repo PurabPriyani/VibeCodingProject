@@ -1,3 +1,5 @@
+from urllib.parse import quote
+
 from django.contrib import messages
 from django.db import transaction
 from django.db.models import Count, ProtectedError, Q, Sum
@@ -103,7 +105,95 @@ def invoice_create(request):
 
 def invoice_edit(request, pk):
     invoice = get_object_or_404(Invoice, pk=pk)
+
+    # Once an invoice has gone to the client it shouldn't quietly change.
+    if invoice.status != Invoice.DRAFT:
+        messages.error(request, "Only drafts can be edited")
+        return redirect("invoice_detail", pk=pk)
+
     return _invoice_form(request, invoice)
+
+
+def invoice_detail(request, pk):
+    invoice = get_object_or_404(Invoice.objects.select_related("client"), pk=pk)
+
+    return render(request, "invoices/invoice_detail.html", {
+        "invoice": invoice,
+        "items": invoice.items.all(),
+        "reminder_link": _reminder_link(invoice),
+    })
+
+
+@require_POST
+def invoice_status(request, pk):
+    invoice = get_object_or_404(Invoice, pk=pk)
+    action = request.POST.get("action")
+    today = timezone.localdate()
+
+    if action == "send" and invoice.status == Invoice.DRAFT:
+        invoice.status = Invoice.SENT
+        invoice.sent_at = today
+        messages.success(request, f"{invoice.number} marked as sent")
+    elif action == "paid" and invoice.status == Invoice.SENT:
+        invoice.status = Invoice.PAID
+        invoice.paid_at = today
+        messages.success(request, f"{invoice.number} marked as paid")
+    elif action == "unpaid" and invoice.status == Invoice.PAID:
+        # Handy when a payment bounces or was marked by mistake.
+        invoice.status = Invoice.SENT
+        invoice.paid_at = None
+        messages.success(request, f"{invoice.number} moved back to awaiting payment")
+    else:
+        messages.error(request, "That change isn't allowed for this invoice")
+        return redirect("invoice_detail", pk=pk)
+
+    invoice.save()
+    return redirect("invoice_detail", pk=pk)
+
+
+@require_POST
+def invoice_delete(request, pk):
+    invoice = get_object_or_404(Invoice, pk=pk)
+
+    if invoice.status != Invoice.DRAFT:
+        messages.error(request, "Sent invoices are kept for your records and can't be deleted")
+        return redirect("invoice_detail", pk=pk)
+
+    number = invoice.number
+    invoice.delete()
+    messages.success(request, f"{number} deleted")
+    return redirect("invoice_list")
+
+
+def _reminder_link(invoice):
+    """A mailto: link that opens the user's own email app with a polite reminder."""
+    if invoice.status != Invoice.SENT:
+        return ""
+
+    business = BusinessProfile.load()
+    client_name = invoice.client.name.split()[0]
+    amount = f"${invoice.total:,.2f}"
+    due = invoice.due_date.strftime("%B %d, %Y")
+
+    if invoice.is_overdue:
+        subject = f"Reminder: invoice {invoice.number} is overdue"
+        opening = (
+            f"This is a friendly reminder that invoice {invoice.number} for {amount} "
+            f"was due on {due} and is now {invoice.days_overdue} days overdue."
+        )
+    else:
+        subject = f"Invoice {invoice.number} due {due}"
+        opening = f"Just a quick note that invoice {invoice.number} for {amount} is due on {due}."
+
+    body = (
+        f"Hi {client_name},\n\n"
+        f"{opening}\n\n"
+        "If you've already sent the payment, please ignore this message. "
+        "Otherwise, let me know if you have any questions.\n\n"
+        f"Thanks,\n{business.name}"
+    )
+
+    return f"mailto:{invoice.client.email}?subject={quote(subject)}&body={quote(body)}"
 
 
 def _invoice_form(request, invoice):
@@ -126,7 +216,7 @@ def _invoice_form(request, invoice):
             messages.success(request, f"{invoice.number} created")
         else:
             messages.success(request, f"{invoice.number} updated")
-        return redirect("invoice_list")
+        return redirect("invoice_detail", pk=invoice.pk)
 
     if business.charge_tax:
         tax_rate = business.tax_rate

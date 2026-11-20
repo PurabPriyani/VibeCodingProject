@@ -18,3 +18,11 @@ document.querySelectorAll("form.js-confirm").forEach(function (form) {
     }
   });
 });
+
+// Print button. Save as PDF is in the browser's print dialog, so there's
+// no PDF library to install.
+document.querySelectorAll(".js-print").forEach(function (button) {
+  button.addEventListener("click", function () {
+    window.print();
+  });
+});

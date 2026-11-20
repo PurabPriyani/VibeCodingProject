@@ -86,7 +86,7 @@
     <p class="due-note"><i class="ti ti-calendar-event"></i> Due <strong id="due-date">—</strong></p>
 
     <button type="submit" class="btn btn-primary btn-block"><i class="ti ti-device-floppy"></i> {% if is_new %}Save invoice{% else %}Save changes{% endif %}</button>
-    <a href="{% url 'invoice_list' %}" class="btn btn-block">Cancel</a>
+    <a href="{% if is_new %}{% url 'invoice_list' %}{% else %}{% url 'invoice_detail' invoice.pk %}{% endif %}" class="btn btn-block">Cancel</a>
   </aside>
 </form>
 {% endif %}

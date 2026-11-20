@@ -41,7 +41,7 @@
     <tbody>
       {% for invoice in invoices %}
       <tr class="js-invoice-row" data-search="{{ invoice.number|lower }} {{ invoice.client|lower }}">
-        <td><span class="mono">{{ invoice.number }}</span></td>
+        <td><a href="{% url 'invoice_detail' invoice.pk %}" class="mono link">{{ invoice.number }}</a></td>
         <td>
           <div class="who">
             <span class="avatar avatar-sm">{{ invoice.client.initials }}</span>
@@ -53,7 +53,7 @@
         <td class="right num">${{ invoice.total|floatformat:2|intcomma }}</td>
         <td><span class="pill pill-{{ invoice.display_status }}">{{ invoice.display_status|capfirst }}</span></td>
         <td class="right">
-          <a href="{% url 'invoice_edit' invoice.pk %}" class="btn btn-icon btn-sm" aria-label="Edit {{ invoice.number }}"><i class="ti ti-pencil"></i></a>
+          <a href="{% url 'invoice_detail' invoice.pk %}" class="btn btn-icon btn-sm" aria-label="Open {{ invoice.number }}"><i class="ti ti-chevron-right"></i></a>
         </td>
       </tr>
       {% endfor %}

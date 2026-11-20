@@ -1,0 +1,154 @@
+{% extends "base.html" %}
+{% load humanize %}
+
+{% block title %}{{ invoice.number }}{% endblock %}
+
+{% block content %}
+<header class="page-head no-print">
+  <div>
+    <a href="{% url 'invoice_list' %}" class="back-link"><i class="ti ti-arrow-left"></i> Invoices</a>
+    <h1 class="title-row">
+      <span class="mono-title">{{ invoice.number }}</span>
+      <span class="pill pill-{{ invoice.display_status }}">{{ invoice.display_status|capfirst }}</span>
+    </h1>
+  </div>
+
+  <div class="page-actions">
+    {% if invoice.status == "draft" %}
+      <form method="post" action="{% url 'invoice_delete' invoice.pk %}" class="js-confirm" data-confirm="Delete {{ invoice.number }}? This can't be undone.">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-icon btn-danger" aria-label="Delete draft"><i class="ti ti-trash"></i></button>
+      </form>
+      <a href="{% url 'invoice_edit' invoice.pk %}" class="btn"><i class="ti ti-pencil"></i> Edit</a>
+    {% endif %}
+
+    <button type="button" class="btn js-print"><i class="ti ti-printer"></i> Print / PDF</button>
+
+    {% if reminder_link %}
+      <a href="{{ reminder_link }}" class="btn"><i class="ti ti-mail-forward"></i> {% if invoice.is_overdue %}Send reminder{% else %}Email client{% endif %}</a>
+    {% endif %}
+
+    <form method="post" action="{% url 'invoice_status' invoice.pk %}">
+      {% csrf_token %}
+      {% if invoice.status == "draft" %}
+        <button type="submit" name="action" value="send" class="btn btn-primary"><i class="ti ti-send"></i> Mark as sent</button>
+      {% elif invoice.status == "sent" %}
+        <button type="submit" name="action" value="paid" class="btn btn-primary"><i class="ti ti-circle-check"></i> Mark as paid</button>
+      {% else %}
+        <button type="submit" name="action" value="unpaid" class="btn"><i class="ti ti-arrow-back-up"></i> Mark as unpaid</button>
+      {% endif %}
+    </form>
+  </div>
+</header>
+
+{% if invoice.is_overdue %}
+<div class="banner banner-danger no-print">
+  <i class="ti ti-alert-triangle"></i>
+  <span>This invoice is <strong>{{ invoice.days_overdue }} day{{ invoice.days_overdue|pluralize }} overdue</strong>. A short, friendly reminder usually does the trick.</span>
+</div>
+{% endif %}
+
+<div class="detail-layout">
+  <article class="paper">
+    <header class="paper-head">
+      <div>
+        <h2 class="paper-business">{{ business.name }}</h2>
+        {% if business.address %}<p>{{ business.address|linebreaksbr }}</p>{% endif %}
+        {% if business.email %}<p>{{ business.email }}</p>{% endif %}
+        {% if business.phone %}<p>{{ business.phone }}</p>{% endif %}
+      </div>
+      <div class="paper-title">
+        <span>Invoice</span>
+        <strong>{{ invoice.number }}</strong>
+      </div>
+    </header>
+
+    <section class="paper-meta">
+      <div>
+        <h4>Bill to</h4>
+        <p><strong>{{ invoice.client.company|default:invoice.client.name }}</strong></p>
+        {% if invoice.client.company %}<p>{{ invoice.client.name }}</p>{% endif %}
+        {% if invoice.client.address %}<p>{{ invoice.client.address|linebreaksbr }}</p>{% endif %}
+        <p>{{ invoice.client.email }}</p>
+      </div>
+      <dl>
+        <div><dt>Issued</dt><dd>{{ invoice.issue_date|date:"M j, Y" }}</dd></div>
+        <div><dt>Due</dt><dd>{{ invoice.due_date|date:"M j, Y" }}</dd></div>
+        <div><dt>Terms</dt><dd>{{ invoice.get_terms_display }}</dd></div>
+      </dl>
+    </section>
+
+    <table class="paper-items">
+      <thead>
+        <tr>
+          <th>Description</th>
+          <th class="right">Qty</th>
+          <th class="right">Price</th>
+          <th class="right">Amount</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in items %}
+        <tr>
+          <td>{{ item.description }}</td>
+          <td class="right">{{ item.quantity|floatformat:"-2" }}</td>
+          <td class="right">${{ item.unit_price|floatformat:2|intcomma }}</td>
+          <td class="right">${{ item.line_total|floatformat:2|intcomma }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+    <dl class="paper-totals">
+      <div><dt>Subtotal</dt><dd>${{ invoice.subtotal|floatformat:2|intcomma }}</dd></div>
+      <div>
+        <dt>{% if invoice.tax_rate %}HST ({{ invoice.tax_rate|floatformat:"-2" }}%){% else %}HST{% endif %}</dt>
+        <dd>${{ invoice.tax_amount|floatformat:2|intcomma }}</dd>
+      </div>
+      <div class="paper-grand"><dt>Total due</dt><dd>${{ invoice.total|floatformat:2|intcomma }} CAD</dd></div>
+    </dl>
+
+    {% if invoice.notes %}
+    <section class="paper-notes">
+      <h4>Notes</h4>
+      <p>{{ invoice.notes|linebreaksbr }}</p>
+    </section>
+    {% endif %}
+
+    {% if business.hst_number %}
+    <footer class="paper-foot">HST registration {{ business.hst_number }}</footer>
+    {% endif %}
+  </article>
+
+  <aside class="detail-side no-print">
+    <section class="card">
+      <span class="eyebrow">Amount due</span>
+      <p class="big-amount num">{% if invoice.status == "paid" %}$0.00{% else %}${{ invoice.total|floatformat:2|intcomma }}{% endif %}</p>
+      <p class="muted small">for {{ invoice.client }}</p>
+    </section>
+
+    <section class="card">
+      <div class="card-head">
+        <span class="card-title"><i class="ti ti-timeline"></i> Activity</span>
+      </div>
+      <ol class="timeline">
+        <li class="is-done">
+          <span class="dot"><i class="ti ti-file-plus"></i></span>
+          <div><strong>Created</strong><small>{{ invoice.created_at|date:"M j, Y" }}</small></div>
+        </li>
+        <li class="{% if invoice.sent_at %}is-done{% endif %}">
+          <span class="dot"><i class="ti ti-send"></i></span>
+          <div><strong>Sent</strong><small>{% if invoice.sent_at %}{{ invoice.sent_at|date:"M j, Y" }}{% else %}Not yet{% endif %}</small></div>
+        </li>
+        <li class="{% if invoice.paid_at %}is-done{% elif invoice.is_overdue %}is-late{% endif %}">
+          <span class="dot"><i class="ti {% if invoice.is_overdue %}ti-alert-triangle{% else %}ti-cash{% endif %}"></i></span>
+          <div>
+            <strong>{% if invoice.paid_at %}Paid{% elif invoice.is_overdue %}Overdue{% else %}Payment{% endif %}</strong>
+            <small>{% if invoice.paid_at %}{{ invoice.paid_at|date:"M j, Y" }}{% else %}Due {{ invoice.due_date|date:"M j, Y" }}{% endif %}</small>
+          </div>
+        </li>
+      </ol>
+    </section>
+  </aside>
+</div>
+{% endblock %}
