@@ -1,0 +1,100 @@
+{% comment %}
+  Email apps (Gmail, Outlook) ignore <style> blocks and external CSS,
+  so this one template uses inline styles and tables on purpose.
+{% endcomment %}
+<!DOCTYPE html>
+<html lang="en">
+<body style="margin:0;padding:0;background:#f2f0ea;font-family:Arial,Helvetica,sans-serif;color:#1d2129;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f2f0ea;padding:32px 12px;">
+    <tr>
+      <td align="center">
+        <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;background:#ffffff;border-radius:14px;overflow:hidden;">
+          <tr>
+            <td style="background:#0f131a;padding:26px 32px;">
+              <span style="color:#5ec2a6;font-size:13px;letter-spacing:1px;text-transform:uppercase;">Invoice {{ invoice.number }}</span>
+              <div style="color:#ffffff;font-size:22px;font-weight:bold;margin-top:4px;">{{ business.name }}</div>
+            </td>
+          </tr>
+
+          <tr>
+            <td style="padding:30px 32px 10px;">
+              <p style="margin:0 0 14px;font-size:15px;">Hi {{ first_name }},</p>
+              <p style="margin:0 0 22px;font-size:15px;line-height:1.6;color:#4a5160;">
+                Here's your invoice from {{ business.name }}. The details are below.
+              </p>
+
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f6f9f8;border-radius:10px;">
+                <tr>
+                  <td style="padding:18px 20px;">
+                    <div style="font-size:12px;color:#8a909c;text-transform:uppercase;letter-spacing:1px;">Amount due</div>
+                    <div style="font-size:28px;font-weight:bold;color:#0f8a6a;margin-top:4px;">${{ invoice.total|floatformat:2 }} CAD</div>
+                  </td>
+                  <td align="right" style="padding:18px 20px;">
+                    <div style="font-size:12px;color:#8a909c;text-transform:uppercase;letter-spacing:1px;">Due</div>
+                    <div style="font-size:16px;font-weight:bold;margin-top:4px;">{{ invoice.due_date|date:"M j, Y" }}</div>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <tr>
+            <td style="padding:16px 32px;">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="font-size:14px;">
+                <tr>
+                  <td style="padding:8px 0;border-bottom:1px solid #e6e3dc;color:#8a909c;font-size:12px;text-transform:uppercase;">Description</td>
+                  <td align="right" style="padding:8px 0;border-bottom:1px solid #e6e3dc;color:#8a909c;font-size:12px;text-transform:uppercase;">Amount</td>
+                </tr>
+                {% for item in items %}
+                <tr>
+                  <td style="padding:12px 0;border-bottom:1px solid #efece6;">
+                    {{ item.description }}
+                    <div style="color:#8a909c;font-size:12px;">{{ item.quantity|floatformat:"-2" }} × ${{ item.unit_price|floatformat:2 }}</div>
+                  </td>
+                  <td align="right" style="padding:12px 0;border-bottom:1px solid #efece6;">${{ item.line_total|floatformat:2 }}</td>
+                </tr>
+                {% endfor %}
+                <tr>
+                  <td style="padding:12px 0 4px;color:#8a909c;">Subtotal</td>
+                  <td align="right" style="padding:12px 0 4px;">${{ invoice.subtotal|floatformat:2 }}</td>
+                </tr>
+                <tr>
+                  <td style="padding:4px 0;color:#8a909c;">HST{% if invoice.tax_rate %} ({{ invoice.tax_rate|floatformat:"-2" }}%){% endif %}</td>
+                  <td align="right" style="padding:4px 0;">${{ invoice.tax_amount|floatformat:2 }}</td>
+                </tr>
+                <tr>
+                  <td style="padding:12px 0;border-top:2px solid #1d2129;font-weight:bold;">Total</td>
+                  <td align="right" style="padding:12px 0;border-top:2px solid #1d2129;font-weight:bold;">${{ invoice.total|floatformat:2 }} CAD</td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          {% if invoice.notes %}
+          <tr>
+            <td style="padding:0 32px 10px;">
+              <div style="background:#f2f0ea;border-radius:10px;padding:14px 16px;font-size:14px;line-height:1.6;color:#4a5160;">{{ invoice.notes|linebreaksbr }}</div>
+            </td>
+          </tr>
+          {% endif %}
+
+          <tr>
+            <td style="padding:18px 32px 30px;font-size:14px;line-height:1.6;color:#4a5160;">
+              If you have any questions, just reply to this email.<br>
+              Thanks,<br>
+              <strong style="color:#1d2129;">{{ business.name }}</strong>
+            </td>
+          </tr>
+
+          <tr>
+            <td style="padding:16px 32px;background:#faf9f6;border-top:1px solid #efece6;font-size:12px;color:#8a909c;">
+              {% if business.address %}{{ business.address|linebreaksbr }}<br>{% endif %}
+              {% if business.hst_number %}HST {{ business.hst_number }}{% endif %}
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>

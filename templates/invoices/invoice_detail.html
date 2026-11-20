@@ -28,16 +28,28 @@
       <a href="{{ reminder_link }}" class="btn"><i class="ti ti-mail-forward"></i> {% if invoice.is_overdue %}Send reminder{% else %}Email client{% endif %}</a>
     {% endif %}
 
+    {% if invoice.status == "sent" %}
+      <form method="post" action="{% url 'invoice_send' invoice.pk %}" class="js-confirm" data-confirm="Email {{ invoice.number }} to {{ invoice.client.email }} again?">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-icon" aria-label="Resend invoice" title="Resend invoice"><i class="ti ti-send"></i></button>
+      </form>
+    {% endif %}
+
+    {% if invoice.status == "draft" %}
+    <form method="post" action="{% url 'invoice_send' invoice.pk %}" class="js-confirm" data-confirm="Email {{ invoice.number }} to {{ invoice.client.email }}?">
+      {% csrf_token %}
+      <button type="submit" class="btn btn-primary js-sending"><i class="ti ti-send"></i> Send invoice</button>
+    </form>
+    {% else %}
     <form method="post" action="{% url 'invoice_status' invoice.pk %}">
       {% csrf_token %}
-      {% if invoice.status == "draft" %}
-        <button type="submit" name="action" value="send" class="btn btn-primary"><i class="ti ti-send"></i> Mark as sent</button>
-      {% elif invoice.status == "sent" %}
+      {% if invoice.status == "sent" %}
         <button type="submit" name="action" value="paid" class="btn btn-primary"><i class="ti ti-circle-check"></i> Mark as paid</button>
       {% else %}
         <button type="submit" name="action" value="unpaid" class="btn"><i class="ti ti-arrow-back-up"></i> Mark as unpaid</button>
       {% endif %}
     </form>
+    {% endif %}
   </div>
 </header>
 

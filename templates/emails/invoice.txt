@@ -1,0 +1,20 @@
+Hi {{ first_name }},
+
+Here's invoice {{ invoice.number }} from {{ business.name }}.
+
+Amount due: ${{ invoice.total|floatformat:2 }} CAD
+Due date:   {{ invoice.due_date|date:"F j, Y" }}
+
+{% for item in items %}- {{ item.description }} ({{ item.quantity|floatformat:"-2" }} x ${{ item.unit_price|floatformat:2 }}) = ${{ item.line_total|floatformat:2 }}
+{% endfor %}
+Subtotal: ${{ invoice.subtotal|floatformat:2 }}
+HST{% if invoice.tax_rate %} ({{ invoice.tax_rate|floatformat:"-2" }}%){% endif %}: ${{ invoice.tax_amount|floatformat:2 }}
+Total: ${{ invoice.total|floatformat:2 }} CAD
+{% if invoice.notes %}
+{{ invoice.notes }}
+{% endif %}
+If you have any questions, just reply to this email.
+
+Thanks,
+{{ business.name }}
+{% if business.hst_number %}HST {{ business.hst_number }}{% endif %}

@@ -7,6 +7,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.views.decorators.http import require_POST
 
+from .emails import send_invoice_email
 from .forms import BusinessProfileForm, ClientForm, InvoiceForm, ItemFormSet
 from .models import BusinessProfile, Client, Invoice
 
@@ -125,16 +126,40 @@ def invoice_detail(request, pk):
 
 
 @require_POST
+def invoice_send(request, pk):
+    """Email the invoice to the client. Drafts become 'sent' once it goes out."""
+    invoice = get_object_or_404(Invoice.objects.select_related("client"), pk=pk)
+
+    if invoice.status == Invoice.PAID:
+        messages.error(request, "This invoice is already paid")
+        return redirect("invoice_detail", pk=pk)
+
+    try:
+        send_invoice_email(invoice, BusinessProfile.load())
+    except Exception as error:
+        # Wrong password, no internet, blocked port... Keep the invoice as it
+        # was and tell the user, instead of pretending it was sent.
+        messages.error(request, f"Couldn't send the email ({error.__class__.__name__}). Check the email settings in .env")
+        return redirect("invoice_detail", pk=pk)
+
+    if invoice.status == Invoice.DRAFT:
+        invoice.status = Invoice.SENT
+        invoice.sent_at = timezone.localdate()
+        invoice.save()
+        messages.success(request, f"{invoice.number} emailed to {invoice.client.email}")
+    else:
+        messages.success(request, f"{invoice.number} sent again to {invoice.client.email}")
+
+    return redirect("invoice_detail", pk=pk)
+
+
+@require_POST
 def invoice_status(request, pk):
     invoice = get_object_or_404(Invoice, pk=pk)
     action = request.POST.get("action")
     today = timezone.localdate()
 
-    if action == "send" and invoice.status == Invoice.DRAFT:
-        invoice.status = Invoice.SENT
-        invoice.sent_at = today
-        messages.success(request, f"{invoice.number} marked as sent")
-    elif action == "paid" and invoice.status == Invoice.SENT:
+    if action == "paid" and invoice.status == Invoice.SENT:
         invoice.status = Invoice.PAID
         invoice.paid_at = today
         messages.success(request, f"{invoice.number} marked as paid")
