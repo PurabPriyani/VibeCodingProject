@@ -1,0 +1,61 @@
+{% load static %}<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Ledgerly{% endblock %} · Ledgerly</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Sora:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.52.0/dist/tabler-icons.min.css">
+  <link rel="stylesheet" href="{% static 'css/app.css' %}">
+</head>
+<body>
+  <div class="shell">
+    <aside class="sidebar">
+      <a href="{% url 'dashboard' %}" class="brand">
+        <span class="brand-mark"><i class="ti ti-receipt-2"></i></span>
+        <span class="brand-name">Ledgerly</span>
+      </a>
+
+      {% with page=request.resolver_match.url_name %}
+      <nav class="nav">
+        <a href="{% url 'dashboard' %}" class="nav-link {% if page == 'dashboard' %}is-active{% endif %}">
+          <i class="ti ti-layout-dashboard"></i> Dashboard
+        </a>
+        <a href="{% url 'settings' %}" class="nav-link {% if page == 'settings' %}is-active{% endif %}">
+          <i class="ti ti-settings"></i> Settings
+        </a>
+      </nav>
+      {% endwith %}
+
+      <div class="sidebar-foot">
+        <span class="avatar">{{ business.name|slice:":2"|upper }}</span>
+        <div class="sidebar-foot-text">
+          <strong>{{ business.name }}</strong>
+          <small>{% if business.charge_tax %}HST {{ business.tax_rate|floatformat:"-2" }}%{% else %}No HST{% endif %}</small>
+        </div>
+      </div>
+    </aside>
+
+    <main class="main">
+      {% if messages %}
+        <div class="toasts">
+          {% for message in messages %}
+            <div class="toast toast-{{ message.tags }}">
+              <i class="ti {% if message.tags == 'error' %}ti-alert-circle{% else %}ti-circle-check{% endif %}"></i>
+              {{ message }}
+            </div>
+          {% endfor %}
+        </div>
+      {% endif %}
+
+      {% block content %}{% endblock %}
+    </main>
+  </div>
+
+  <script src="{% static 'js/app.js' %}"></script>
+  {% block scripts %}{% endblock %}
+</body>
+</html>

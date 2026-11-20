@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+
+{% block title %}Settings{% endblock %}
+
+{% block content %}
+<header class="page-head">
+  <div>
+    <h1>Settings</h1>
+    <p>These details appear at the top of every invoice you send.</p>
+  </div>
+</header>
+
+<div class="settings-layout">
+  <form method="post" class="card" novalidate>
+    {% csrf_token %}
+    <div class="card-head">
+      <span class="card-title"><i class="ti ti-building-store"></i> Business details</span>
+    </div>
+
+    <div class="form-grid">
+      {% include "invoices/_field.html" with field=form.name extra_class="field-full" %}
+      {% include "invoices/_field.html" with field=form.email %}
+      {% include "invoices/_field.html" with field=form.phone %}
+      {% include "invoices/_field.html" with field=form.address extra_class="field-full" %}
+      {% include "invoices/_field.html" with field=form.hst_number %}
+      {% include "invoices/_field.html" with field=form.tax_rate %}
+
+      <div class="field field-full">
+        <label class="switch">
+          {{ form.charge_tax }}
+          <span>Charge HST on new invoices</span>
+        </label>
+        <small>{{ form.charge_tax.help_text }}</small>
+      </div>
+    </div>
+
+    <div class="form-actions">
+      <button type="submit" class="btn btn-primary"><i class="ti ti-device-floppy"></i> Save changes</button>
+    </div>
+  </form>
+
+  <aside class="card preview-card">
+    <div class="card-head">
+      <span class="card-title"><i class="ti ti-eye"></i> On your invoices</span>
+    </div>
+    <h3>{{ profile.name }}</h3>
+    {% if profile.address %}<p>{{ profile.address }}</p>{% endif %}
+    {% if profile.email %}<p>{{ profile.email }}</p>{% endif %}
+    {% if profile.phone %}<p>{{ profile.phone }}</p>{% endif %}
+    {% if profile.hst_number %}<p class="mono">HST {{ profile.hst_number }}</p>{% endif %}
+  </aside>
+</div>
+{% endblock %}

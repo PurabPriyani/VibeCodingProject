@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+<header class="page-head">
+  <div>
+    <h1>Dashboard</h1>
+    <p>Your invoices at a glance.</p>
+  </div>
+</header>
+
+<section class="card empty">
+  <i class="ti ti-receipt-2"></i>
+  <h3>Set up your business first</h3>
+  <p>Add your business details and tax rate, then start creating invoices.</p>
+  <a href="{% url 'settings' %}" class="btn btn-primary"><i class="ti ti-settings"></i> Open settings</a>
+</section>
+{% endblock %}
