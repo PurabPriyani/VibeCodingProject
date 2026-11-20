@@ -68,7 +68,6 @@ def dashboard(request):
         "billed": billed,
         "billed_paid": billed_paid,
         "collection_rate": collection_rate,
-        "ring_dash": round(collection_rate * 2.136, 1),
         "monthly": _monthly_collected(month_start),
         "recent": Invoice.objects.select_related("client")[:6],
         "due_soon": _due_soon(today, BusinessProfile.load()),
