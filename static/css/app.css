@@ -1566,6 +1566,80 @@ textarea:focus {
   font-size: 19px;
 }
 
+/* ---------- 3D hero ---------- */
+
+.hero {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+  align-items: center;
+  min-height: 270px;
+  margin-bottom: 20px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  background:
+    radial-gradient(520px 260px at 78% 60%, rgba(94, 194, 166, 0.14), transparent 70%),
+    linear-gradient(135deg, #151b24, #11161e);
+}
+
+.hero-text {
+  position: relative;
+  z-index: 1;
+  padding: 30px 34px;
+}
+
+.hero-text .eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--accent);
+}
+
+.hero-amount {
+  margin: 10px 0 8px;
+  font-size: 42px;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+}
+
+.hero-amount span {
+  color: var(--muted);
+  font-size: 18px;
+  font-weight: 400;
+  letter-spacing: 0;
+}
+
+.hero-text p {
+  max-width: 400px;
+  margin: 0 0 20px;
+  color: var(--text-soft);
+}
+
+.hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.btn-ghost {
+  border-color: transparent;
+  color: var(--muted);
+}
+
+.btn-ghost:hover {
+  background: transparent;
+  border-color: transparent;
+  color: var(--text);
+}
+
+.hero-canvas {
+  display: block;
+  width: 100%;
+  height: 270px;
+  cursor: default;
+}
+
 .spin {
   animation: spin 0.9s linear infinite;
 }

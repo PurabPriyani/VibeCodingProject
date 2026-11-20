@@ -28,6 +28,30 @@
 </section>
 {% else %}
 
+<section class="hero">
+  <div class="hero-text">
+    <span class="eyebrow"><i class="ti ti-sparkles"></i> This month so far</span>
+    <h2 class="hero-amount num">{{ collected|cad:0 }} <span>collected</span></h2>
+    <p>
+      {% if trend is not None %}
+        That's {% if trend >= 0 %}up {{ trend }}%{% else %}down {{ trend|stringformat:"d"|slice:"1:" }}%{% endif %} on last month.
+      {% endif %}
+      {% if overdue_count %}
+        {{ overdue_count }} invoice{{ overdue_count|pluralize }} {{ overdue_count|pluralize:"is,are" }} overdue, worth {{ overdue_total|cad:0 }}.
+      {% else %}
+        Nothing is overdue. Nice.
+      {% endif %}
+    </p>
+    <div class="hero-actions">
+      {% if overdue_count %}
+        <a href="{% url 'invoice_list' %}?status=overdue" class="btn"><i class="ti ti-alert-triangle"></i> Review overdue</a>
+      {% endif %}
+      <a href="{% url 'invoice_list' %}" class="btn btn-ghost">All invoices <i class="ti ti-arrow-right"></i></a>
+    </div>
+  </div>
+  <canvas id="hero-canvas" class="hero-canvas" data-total="{{ collected|cad }}" aria-hidden="true"></canvas>
+</section>
+
 <section class="kpis">
   <article class="kpi">
     <div class="kpi-top">
@@ -159,4 +183,5 @@
 {% block scripts %}
 {% load static %}
 <script src="{% static 'js/dashboard.js' %}"></script>
+{% if has_invoices %}<script type="module" src="{% static 'js/hero3d.js' %}"></script>{% endif %}
 {% endblock %}
