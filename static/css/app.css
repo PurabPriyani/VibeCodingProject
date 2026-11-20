@@ -1365,6 +1365,10 @@ textarea:focus {
   font-size: 16px;
 }
 
+.kpi-link.is-blue {
+  color: var(--blue);
+}
+
 /* Recent invoices filter */
 
 .chips {

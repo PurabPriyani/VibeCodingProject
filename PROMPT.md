@@ -113,6 +113,7 @@ Each stage was generated, run, tested and committed before the next one started.
 | 6e | Comment clean-up across the project (see prompt 19) | Clean up and explain code comments |
 | 6f | Doctype moved to the first line of `base.html` (see prompt 20) | Put the doctype first in the base template |
 | 7 | README, screenshots, this prompt log | Add README, screenshots and prompt log |
+| 8 | Outstanding card no longer counts overdue invoices (see prompt 25) | Count only not-yet-due invoices as outstanding |
 
 ---
 
@@ -158,6 +159,22 @@ Each stage was generated, run, tested and committed before the next one started.
 
 **AI response:** Explained that the template itself was valid and the app ran fine. The red marks came from VS Code checking Django templates as plain HTML. It moved `<!DOCTYPE html>` to the first line (it had been after `{% load static %}`, which HTML checkers flag), and added a local `.vscode/settings.json` (not committed) so VS Code treats the templates as Django templates. It also suggested installing the Django extension for VS Code.
 
+### Prompts 21–24 (final checks)
+> how to check the output of the readme file
+
+> how to do a clean clone test. Give me step by step instructions
+
+> *(pasted the cloned project's `.env`)* the email is not being sent. This is the file from notepad when I cloned the project.
+
+> http://127.0.0.1:8001/ can you access this link ?
+
+**AI response:** Showed how to preview the README in VS Code (`Ctrl + Shift + V`) and on GitHub, and gave step-by-step clean-clone instructions (clone into a new folder, check no `.env` or `venv` was uploaded, install, use SQLite, migrate, load demo data, run the tests, run on port 8001). It explained that the fresh clone printing emails instead of sending them proves the Gmail password never reached GitHub. It then opened the clone in the Claude desktop app's browser, confirmed the dashboard loaded with no console errors, and pointed out that the layout gets cramped in narrow windows.
+
+### Prompt 25
+> here, the outstanding KPI is not working properly. It is not changing dynamically as 3 invoices are awaiting payment and it's showing 4. fix it
+
+**AI response:** Found the cause: the Outstanding card counted every sent invoice, including the overdue one that the Overdue card already counted, while the "Awaiting payment" tab only lists invoices that aren't past due. Outstanding now counts sent invoices up to their due date, so the two cards never overlap and the number matches the tab. The card also links to that tab, and a test checks both counts.
+
 ---
 
 ## Phase 4: Testing and fixing
@@ -172,7 +189,8 @@ Problems found while testing, and how they were fixed:
 6. **Reminder links loaded the business profile once per invoice.** Fix: load it once and pass it in.
 7. **Dashboard showed the same numbers two or three times** after the 3D hero was added. Each number now appears once (prompt 16).
 8. **Activity timeline out of order on sample invoices** ("Created Nov 19" listed after "Sent Nov 12"). The demo data command now sets the created date to the issue date.
-9. **3D camera too far, then too close.** Adjusted the field of view and camera position until the bars and the invoice card fit the hero.
+9. **Outstanding card counted overdue invoices too**, so it said 4 when the "Awaiting payment" tab showed 3 (prompt 25).
+10. **3D camera too far, then too close.** Adjusted the field of view and camera position until the bars and the invoice card fit the hero.
 
 ---
 

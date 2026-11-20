@@ -30,7 +30,7 @@ I'm in an entrepreneurial co-op program, and one thing every small business has 
 - **Validation** in the browser and on the server: no empty invoices, no negative quantities, tax rate capped at 100%
 - **Safe deletes**: sent invoices are kept for your records, and clients with invoices can't be deleted
 - **Demo data** command so the dashboard can be filled in seconds
-- **22 automated tests** for the money maths, numbering, statuses, emails and PDF attachments, pagination and the main pages
+- **23 automated tests** for the money maths, numbering, statuses, emails and PDF attachments, pagination and the main pages
 
 ## Technologies
 
@@ -222,6 +222,7 @@ It saved the most time on the parts that are fiddly but well known. The invoice 
 - **Inconsistent money formatting.** Using Django's `intcomma` with the `en-ca` locale showed **$5 769** on the dashboard but **$1,356.00** in tables. I replaced it with one custom `cad` filter so every amount looks the same, and added a test for it.
 - **Layout bugs** that only showed up when I looked at the pages: table headers that should have been right-aligned weren't (a CSS specificity problem), toast messages covered the "New invoice" button, and the sidebar stopped halfway down long pages.
 - **The 3D scene took several tries.** The first camera was too far away and the scene looked tiny, and the next one was so close the invoice card was cut off.
+- **Two dashboard numbers overlapped.** The Outstanding card counted every unpaid invoice, including overdue ones, so it said "4 invoices awaiting payment" while the Invoices page's "Awaiting payment" tab listed 3 and the Overdue card counted the fourth. I noticed the mismatch while testing a fresh clone. Now an invoice counts as outstanding until its due date and as overdue after it, and a test checks the two never overlap.
 - **The first dashboard repeated itself.** After adding the 3D hero, the same numbers showed up two or three times: "collected this month" was in the hero and a card, the overdue count was in the header, the hero and a card, and the 3D bars showed the same six months as the 2D bar chart. I noticed it while testing and asked for it to be fixed. Now each number has one home, and the 2D chart was replaced by a labelled month strip under the 3D bars.
 - **Early ideas were generic.** My first few requests got typical suggestions (to-do lists, quiz apps), and I had to push back several times before landing on something useful.
 - **Library versions.** The newest `mssql-django` (2.0) switched to a different database driver, so we checked the package metadata and pinned Django 5.2 LTS with `mssql-django` 1.8, which still uses the standard `pyodbc` driver.
@@ -232,7 +233,7 @@ It saved the most time on the parts that are fiddly but well known. The invoice 
 - Tried to break the forms on purpose: empty invoices, negative quantities, a 150% tax rate, deleting a client who has invoices, editing an invoice that was already sent
 - Checked the money maths with awkward numbers (3 × $19.99 + $250 at 13% should be exactly $350.27)
 - Compared the live total in the browser with the total saved in the database, which is how the rounding bug was found
-- Added 22 automated tests (`python manage.py test invoices`) covering rounding, tax, numbering, due dates, overdue status, the status flow, and every page loading
+- Added 23 automated tests (`python manage.py test invoices`) covering rounding, tax, numbering, due dates, overdue status, the status flow, and every page loading
 - Looked at screenshots of every page, which is how the formatting and layout bugs were found
 
 ### 4. How did my prompts evolve?

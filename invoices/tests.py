@@ -223,6 +223,21 @@ class InvoiceViewTests(TestCase):
         response = self.client.get(reverse("invoice_list") + "?q=orbit")
         self.assertEqual(response.context["page"].paginator.count, 1)
 
+    def test_outstanding_and_overdue_do_not_overlap(self):
+        today = timezone.localdate()
+        # Two invoices still within their terms, and one past its due date.
+        Invoice.objects.create(client=self.client_record, issue_date=today, terms=15, status=Invoice.SENT)
+        Invoice.objects.create(client=self.client_record, issue_date=today, terms=30, status=Invoice.SENT)
+        Invoice.objects.create(client=self.client_record, issue_date=today - timedelta(days=40), terms=15, status=Invoice.SENT)
+
+        dashboard = self.client.get(reverse("dashboard"))
+        self.assertEqual(dashboard.context["outstanding_count"], 2)
+        self.assertEqual(dashboard.context["overdue_count"], 1)
+
+        # Same number as the "Awaiting payment" tab on the invoices page.
+        awaiting = self.client.get(reverse("invoice_list") + "?status=sent")
+        self.assertEqual(awaiting.context["page"].paginator.count, 2)
+
     def test_every_page_loads(self):
         Invoice.objects.create(client=self.client_record, status=Invoice.SENT)
         for name in ["dashboard", "invoice_list", "invoice_create", "client_list", "settings"]:

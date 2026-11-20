@@ -36,7 +36,10 @@ def dashboard(request):
         paid_at__gte=last_month_start, paid_at__lt=month_start
     ).aggregate(total=Sum("total"))["total"] or 0
 
-    outstanding = sent.aggregate(total=Sum("total"), count=Count("id"))
+    # Outstanding and Overdue don't overlap: a sent invoice counts as outstanding
+    # until its due date, and as overdue after that. This matches the
+    # "Awaiting payment" and "Overdue" tabs on the invoices page.
+    outstanding = sent.filter(due_date__gte=today).aggregate(total=Sum("total"), count=Count("id"))
     overdue = sent.filter(due_date__lt=today).aggregate(total=Sum("total"), count=Count("id"))
 
     # Percentage change against last month, only when there's something to compare to.

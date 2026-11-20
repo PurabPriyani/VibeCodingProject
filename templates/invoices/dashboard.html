@@ -50,14 +50,15 @@
 
 {# The cards cover what's still owed and how well it's being paid. #}
 <section class="kpis">
-  <article class="kpi">
+  <a href="{% url 'invoice_list' %}?status=sent" class="kpi">
     <div class="kpi-top">
       <span class="kpi-icon is-blue"><i class="ti ti-hourglass"></i></span>
       <span>Outstanding</span>
+      {% if outstanding_count %}<i class="ti ti-arrow-up-right kpi-link is-blue"></i>{% endif %}
     </div>
     <strong class="kpi-value num">{{ outstanding_total|cad:0 }}</strong>
-    <small>{{ outstanding_count }} invoice{{ outstanding_count|pluralize }} awaiting payment</small>
-  </article>
+    <small>{{ outstanding_count }} invoice{{ outstanding_count|pluralize }} not yet due</small>
+  </a>
 
   <a href="{% url 'invoice_list' %}?status=overdue" class="kpi {% if overdue_count %}is-alert{% endif %}">
     <div class="kpi-top">
