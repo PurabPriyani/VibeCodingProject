@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load humanize %}
+{% load money %}
 
 {% block title %}Clients{% endblock %}
 
@@ -44,7 +44,7 @@
         </td>
         <td class="muted">{{ client.email }}</td>
         <td class="right">{{ client.invoice_count }}</td>
-        <td class="right num">{% if client.balance %}${{ client.balance|floatformat:2|intcomma }}{% else %}<span class="muted">—</span>{% endif %}</td>
+        <td class="right num">{% if client.balance %}{{ client.balance|cad }}{% else %}<span class="muted">—</span>{% endif %}</td>
         <td class="right">
           <div class="row-actions">
             <button type="button" class="btn btn-icon btn-sm js-edit-client" aria-label="Edit {{ client }}"

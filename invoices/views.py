@@ -71,7 +71,7 @@ def dashboard(request):
         "ring_dash": round(collection_rate * 2.136, 1),
         "monthly": _monthly_collected(month_start),
         "recent": Invoice.objects.select_related("client")[:6],
-        "due_soon": _due_soon(today),
+        "due_soon": _due_soon(today, BusinessProfile.load()),
     })
 
 
@@ -112,7 +112,7 @@ def _monthly_collected(month_start):
     return result
 
 
-def _due_soon(today):
+def _due_soon(today, business):
     upcoming = (
         Invoice.objects.select_related("client")
         .filter(status=Invoice.SENT, due_date__gte=today, due_date__lte=today + timedelta(days=7))
@@ -120,7 +120,7 @@ def _due_soon(today):
     )
     rows = []
     for invoice in upcoming:
-        rows.append({"invoice": invoice, "reminder": _reminder_link(invoice)})
+        rows.append({"invoice": invoice, "reminder": _reminder_link(invoice, business)})
     return rows
 
 
@@ -229,7 +229,7 @@ def invoice_detail(request, pk):
     return render(request, "invoices/invoice_detail.html", {
         "invoice": invoice,
         "items": invoice.items.all(),
-        "reminder_link": _reminder_link(invoice),
+        "reminder_link": _reminder_link(invoice, BusinessProfile.load()),
     })
 
 
@@ -298,12 +298,11 @@ def invoice_delete(request, pk):
     return redirect("invoice_list")
 
 
-def _reminder_link(invoice):
+def _reminder_link(invoice, business):
     """A mailto: link that opens the user's own email app with a polite reminder."""
     if invoice.status != Invoice.SENT:
         return ""
 
-    business = BusinessProfile.load()
     client_name = invoice.client.name.split()[0]
     amount = f"${invoice.total:,.2f}"
     due = invoice.due_date.strftime("%B %d, %Y")

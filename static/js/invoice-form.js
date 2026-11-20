@@ -16,9 +16,11 @@ if (form) {
   const money = new Intl.NumberFormat("en-CA", { style: "currency", currency: "CAD" });
 
   // Round to cents the same way the server does, so the preview never
-  // disagrees with the saved invoice.
+  // disagrees with the saved invoice. The usual Math.round(value * 100) / 100
+  // gets this wrong for values like 1.005, because 1.005 * 100 is really
+  // 100.49999... in floating point. Shifting with "e2" avoids that.
   function toCents(value) {
-    return Math.round(value * 100) / 100;
+    return Number(Math.round(value + "e2") + "e-2");
   }
 
   function visibleRows() {

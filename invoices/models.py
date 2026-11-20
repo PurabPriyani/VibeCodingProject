@@ -28,6 +28,13 @@ class BusinessProfile(models.Model):
     def __str__(self):
         return self.name
 
+    @property
+    def initials(self):
+        words = self.name.split()
+        if len(words) >= 2:
+            return (words[0][0] + words[1][0]).upper()
+        return self.name[:2].upper()
+
     @classmethod
     def load(cls):
         # Always work with row 1 so the app never ends up with two profiles.

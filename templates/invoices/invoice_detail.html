@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load humanize %}
+{% load money %}
 
 {% block title %}{{ invoice.number }}{% endblock %}
 
@@ -104,20 +104,20 @@
         <tr>
           <td>{{ item.description }}</td>
           <td class="right">{{ item.quantity|floatformat:"-2" }}</td>
-          <td class="right">${{ item.unit_price|floatformat:2|intcomma }}</td>
-          <td class="right">${{ item.line_total|floatformat:2|intcomma }}</td>
+          <td class="right">{{ item.unit_price|cad }}</td>
+          <td class="right">{{ item.line_total|cad }}</td>
         </tr>
         {% endfor %}
       </tbody>
     </table>
 
     <dl class="paper-totals">
-      <div><dt>Subtotal</dt><dd>${{ invoice.subtotal|floatformat:2|intcomma }}</dd></div>
+      <div><dt>Subtotal</dt><dd>{{ invoice.subtotal|cad }}</dd></div>
       <div>
         <dt>{% if invoice.tax_rate %}HST ({{ invoice.tax_rate|floatformat:"-2" }}%){% else %}HST{% endif %}</dt>
-        <dd>${{ invoice.tax_amount|floatformat:2|intcomma }}</dd>
+        <dd>{{ invoice.tax_amount|cad }}</dd>
       </div>
-      <div class="paper-grand"><dt>Total due</dt><dd>${{ invoice.total|floatformat:2|intcomma }} CAD</dd></div>
+      <div class="paper-grand"><dt>Total due</dt><dd>{{ invoice.total|cad }} CAD</dd></div>
     </dl>
 
     {% if invoice.notes %}
@@ -135,7 +135,7 @@
   <aside class="detail-side no-print">
     <section class="card">
       <span class="eyebrow">Amount due</span>
-      <p class="big-amount num">{% if invoice.status == "paid" %}$0.00{% else %}${{ invoice.total|floatformat:2|intcomma }}{% endif %}</p>
+      <p class="big-amount num">{% if invoice.status == "paid" %}$0.00{% else %}{{ invoice.total|cad }}{% endif %}</p>
       <p class="muted small">for {{ invoice.client }}</p>
     </section>
 

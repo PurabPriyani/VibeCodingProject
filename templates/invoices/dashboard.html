@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load humanize %}
+{% load money %}
 
 {% block title %}Dashboard{% endblock %}
 
@@ -34,7 +34,7 @@
       <span class="kpi-icon"><i class="ti ti-circle-check"></i></span>
       <span>Collected this month</span>
     </div>
-    <strong class="kpi-value num">${{ collected|floatformat:0|intcomma }}</strong>
+    <strong class="kpi-value num">{{ collected|cad:0 }}</strong>
     <small>
       {% if trend is not None %}
         <span class="trend {% if trend >= 0 %}is-up{% else %}is-down{% endif %}">
@@ -51,7 +51,7 @@
       <span class="kpi-icon is-blue"><i class="ti ti-hourglass"></i></span>
       <span>Outstanding</span>
     </div>
-    <strong class="kpi-value num">${{ outstanding_total|floatformat:0|intcomma }}</strong>
+    <strong class="kpi-value num">{{ outstanding_total|cad:0 }}</strong>
     <small>{{ outstanding_count }} invoice{{ outstanding_count|pluralize }} awaiting payment</small>
   </article>
 
@@ -60,7 +60,7 @@
       <span class="kpi-icon is-danger"><i class="ti ti-alert-triangle"></i></span>
       <span>Overdue</span>
     </div>
-    <strong class="kpi-value num">${{ overdue_total|floatformat:0|intcomma }}</strong>
+    <strong class="kpi-value num">{{ overdue_total|cad:0 }}</strong>
     <small>{% if overdue_count %}{{ overdue_count }} invoice{{ overdue_count|pluralize }} past due{% else %}Nothing overdue{% endif %}</small>
   </a>
 
@@ -96,7 +96,7 @@
       </svg>
       <div class="ring-label"><strong class="num">{{ collection_rate }}%</strong><span>paid</span></div>
     </div>
-    <p class="muted small center">${{ billed_paid|floatformat:0|intcomma }} of ${{ billed|floatformat:0|intcomma }} billed this month</p>
+    <p class="muted small center">{{ billed_paid|cad:0 }} of {{ billed|cad:0 }} billed this month</p>
   </article>
 </section>
 
@@ -122,7 +122,7 @@
             </a>
           </td>
           <td class="muted">Due {{ invoice.due_date|date:"M j" }}</td>
-          <td class="right num">${{ invoice.total|floatformat:2|intcomma }}</td>
+          <td class="right num">{{ invoice.total|cad }}</td>
           <td class="right"><span class="pill pill-{{ invoice.display_status }}">{{ invoice.display_status|capfirst }}</span></td>
         </tr>
         {% endfor %}
@@ -142,7 +142,7 @@
         <span class="date-chip"><small>{{ row.invoice.due_date|date:"M" }}</small>{{ row.invoice.due_date|date:"j" }}</span>
         <a href="{% url 'invoice_detail' row.invoice.pk %}" class="due-info">
           <strong>{{ row.invoice.client }}</strong>
-          <small class="num">${{ row.invoice.total|floatformat:2|intcomma }}</small>
+          <small class="num">{{ row.invoice.total|cad }}</small>
         </a>
         <a href="{{ row.reminder }}" class="btn btn-icon btn-sm" aria-label="Email {{ row.invoice.client }}" title="Email a reminder"><i class="ti ti-mail-forward"></i></a>
       </li>

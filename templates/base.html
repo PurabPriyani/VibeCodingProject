@@ -37,7 +37,7 @@
       {% endwith %}
 
       <div class="sidebar-foot">
-        <span class="avatar">{{ business.name|slice:":2"|upper }}</span>
+        <span class="avatar">{{ business.initials }}</span>
         <div class="sidebar-foot-text">
           <strong>{{ business.name }}</strong>
           <small>{% if business.charge_tax %}HST {{ business.tax_rate|floatformat:"-2" }}%{% else %}No HST{% endif %}</small>
