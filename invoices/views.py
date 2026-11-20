@@ -1,8 +1,10 @@
+from datetime import timedelta
 from urllib.parse import quote
 
 from django.contrib import messages
 from django.db import transaction
 from django.db.models import Count, ProtectedError, Q, Sum
+from django.db.models.functions import TruncMonth
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.views.decorators.http import require_POST
@@ -13,7 +15,113 @@ from .models import BusinessProfile, Client, Invoice
 
 
 def dashboard(request):
-    return render(request, "invoices/dashboard.html")
+    today = timezone.localdate()
+    month_start = today.replace(day=1)
+    last_month_start = (month_start - timedelta(days=1)).replace(day=1)
+
+    sent = Invoice.objects.filter(status=Invoice.SENT)
+    paid = Invoice.objects.filter(status=Invoice.PAID)
+
+    # One aggregate query per card instead of looping over every invoice.
+    collected = paid.filter(paid_at__gte=month_start).aggregate(total=Sum("total"))["total"] or 0
+    collected_before = paid.filter(
+        paid_at__gte=last_month_start, paid_at__lt=month_start
+    ).aggregate(total=Sum("total"))["total"] or 0
+
+    outstanding = sent.aggregate(total=Sum("total"), count=Count("id"))
+    overdue = sent.filter(due_date__lt=today).aggregate(total=Sum("total"), count=Count("id"))
+
+    # Percentage change against last month, only when there's something to compare to.
+    trend = None
+    if collected_before:
+        trend = round((collected - collected_before) / collected_before * 100)
+
+    # Average days between issuing an invoice and getting paid.
+    pay_days = []
+    for issued, paid_on in paid.exclude(paid_at=None).values_list("issue_date", "paid_at")[:100]:
+        pay_days.append((paid_on - issued).days)
+    if pay_days:
+        avg_days = round(sum(pay_days) / len(pay_days))
+    else:
+        avg_days = None
+
+    # How much of what was billed this month has already come in.
+    billed_this_month = Invoice.objects.exclude(status=Invoice.DRAFT).filter(issue_date__gte=month_start)
+    billed = billed_this_month.aggregate(total=Sum("total"))["total"] or 0
+    billed_paid = billed_this_month.filter(status=Invoice.PAID).aggregate(total=Sum("total"))["total"] or 0
+    if billed:
+        collection_rate = round(billed_paid / billed * 100)
+    else:
+        collection_rate = 0
+
+    return render(request, "invoices/dashboard.html", {
+        "greeting": _greeting(),
+        "today": today,
+        "has_invoices": Invoice.objects.exists(),
+        "collected": collected,
+        "trend": trend,
+        "outstanding_total": outstanding["total"] or 0,
+        "outstanding_count": outstanding["count"],
+        "overdue_total": overdue["total"] or 0,
+        "overdue_count": overdue["count"],
+        "avg_days": avg_days,
+        "billed": billed,
+        "billed_paid": billed_paid,
+        "collection_rate": collection_rate,
+        "ring_dash": round(collection_rate * 2.136, 1),
+        "monthly": _monthly_collected(month_start),
+        "recent": Invoice.objects.select_related("client")[:6],
+        "due_soon": _due_soon(today),
+    })
+
+
+def _greeting():
+    hour = timezone.localtime().hour
+    if hour < 12:
+        return "Good morning"
+    elif hour < 18:
+        return "Good afternoon"
+    return "Good evening"
+
+
+def _monthly_collected(month_start):
+    """Money collected in each of the last six months, oldest first."""
+    months = []
+    start = month_start
+    for i in range(6):
+        months.insert(0, start)
+        start = (start - timedelta(days=1)).replace(day=1)
+
+    totals = (
+        Invoice.objects.filter(status=Invoice.PAID, paid_at__gte=months[0])
+        .annotate(month=TruncMonth("paid_at"))
+        .values("month")
+        .annotate(total=Sum("total"))
+    )
+
+    by_month = {}
+    for row in totals:
+        by_month[row["month"]] = float(row["total"])
+
+    result = []
+    for month in months:
+        result.append({
+            "label": month.strftime("%b"),
+            "value": round(by_month.get(month, 0), 2),
+        })
+    return result
+
+
+def _due_soon(today):
+    upcoming = (
+        Invoice.objects.select_related("client")
+        .filter(status=Invoice.SENT, due_date__gte=today, due_date__lte=today + timedelta(days=7))
+        .order_by("due_date")[:5]
+    )
+    rows = []
+    for invoice in upcoming:
+        rows.append({"invoice": invoice, "reminder": _reminder_link(invoice)})
+    return rows
 
 
 # ---------- Clients ----------

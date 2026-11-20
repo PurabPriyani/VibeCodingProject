@@ -98,14 +98,13 @@ class Invoice(models.Model):
 
     def save(self, *args, **kwargs):
         if not self.number:
-            self.number = Invoice.next_number()
+            self.number = Invoice.next_number(self.issue_date.year)
         self.due_date = self.issue_date + timedelta(days=self.terms)
         super().save(*args, **kwargs)
 
     @staticmethod
-    def next_number():
+    def next_number(year):
         """INV-2026-001, INV-2026-002 ... the counter starts again each year."""
-        year = timezone.localdate().year
         prefix = f"INV-{year}-"
         last = (
             Invoice.objects.filter(number__startswith=prefix)

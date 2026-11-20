@@ -1,19 +1,162 @@
 {% extends "base.html" %}
+{% load humanize %}
 
 {% block title %}Dashboard{% endblock %}
 
 {% block content %}
 <header class="page-head">
   <div>
-    <h1>Dashboard</h1>
-    <p>Your invoices at a glance.</p>
+    <h1>{{ greeting }}</h1>
+    <p>
+      {{ today|date:"l, F j" }}
+      {% if overdue_count %}
+        · <span class="text-danger">{{ overdue_count }} invoice{{ overdue_count|pluralize }} need{{ overdue_count|pluralize:"s," }} your attention</span>
+      {% endif %}
+    </p>
+  </div>
+  <div class="page-actions">
+    <a href="{% url 'invoice_create' %}" class="btn btn-primary"><i class="ti ti-plus"></i> New invoice</a>
   </div>
 </header>
 
+{% if not has_invoices %}
 <section class="card empty">
   <i class="ti ti-receipt-2"></i>
-  <h3>Set up your business first</h3>
-  <p>Add your business details and tax rate, then start creating invoices.</p>
-  <a href="{% url 'settings' %}" class="btn btn-primary"><i class="ti ti-settings"></i> Open settings</a>
+  <h3>Create your first invoice</h3>
+  <p>Add a client, build an invoice, and your numbers will show up here.</p>
+  <a href="{% url 'invoice_create' %}" class="btn btn-primary"><i class="ti ti-plus"></i> New invoice</a>
 </section>
+{% else %}
+
+<section class="kpis">
+  <article class="kpi">
+    <div class="kpi-top">
+      <span class="kpi-icon"><i class="ti ti-circle-check"></i></span>
+      <span>Collected this month</span>
+    </div>
+    <strong class="kpi-value num">${{ collected|floatformat:0|intcomma }}</strong>
+    <small>
+      {% if trend is not None %}
+        <span class="trend {% if trend >= 0 %}is-up{% else %}is-down{% endif %}">
+          <i class="ti {% if trend >= 0 %}ti-trending-up{% else %}ti-trending-down{% endif %}"></i>{{ trend }}%
+        </span> vs last month
+      {% else %}
+        First month of data
+      {% endif %}
+    </small>
+  </article>
+
+  <article class="kpi">
+    <div class="kpi-top">
+      <span class="kpi-icon is-blue"><i class="ti ti-hourglass"></i></span>
+      <span>Outstanding</span>
+    </div>
+    <strong class="kpi-value num">${{ outstanding_total|floatformat:0|intcomma }}</strong>
+    <small>{{ outstanding_count }} invoice{{ outstanding_count|pluralize }} awaiting payment</small>
+  </article>
+
+  <a href="{% url 'invoice_list' %}?status=overdue" class="kpi {% if overdue_count %}is-alert{% endif %}">
+    <div class="kpi-top">
+      <span class="kpi-icon is-danger"><i class="ti ti-alert-triangle"></i></span>
+      <span>Overdue</span>
+    </div>
+    <strong class="kpi-value num">${{ overdue_total|floatformat:0|intcomma }}</strong>
+    <small>{% if overdue_count %}{{ overdue_count }} invoice{{ overdue_count|pluralize }} past due{% else %}Nothing overdue{% endif %}</small>
+  </a>
+
+  <article class="kpi">
+    <div class="kpi-top">
+      <span class="kpi-icon is-amber"><i class="ti ti-clock-dollar"></i></span>
+      <span>Avg. time to get paid</span>
+    </div>
+    <strong class="kpi-value num">{% if avg_days is not None %}{{ avg_days }} day{{ avg_days|pluralize }}{% else %}—{% endif %}</strong>
+    <small>from issue date to payment</small>
+  </article>
+</section>
+
+<section class="dash-grid">
+  <article class="card">
+    <div class="card-head">
+      <span class="card-title"><i class="ti ti-chart-bar"></i> Cash collected</span>
+      <span class="muted small">Last 6 months</span>
+    </div>
+    <div class="bar-chart" id="bar-chart" role="img" aria-label="Money collected in each of the last six months"></div>
+    {{ monthly|json_script:"monthly-data" }}
+  </article>
+
+  <article class="card">
+    <div class="card-head">
+      <span class="card-title"><i class="ti ti-target-arrow"></i> Collection rate</span>
+      <span class="muted small">This month</span>
+    </div>
+    <div class="ring-wrap">
+      <svg viewBox="0 0 90 90" class="ring" aria-hidden="true">
+        <circle cx="45" cy="45" r="34" class="ring-track"/>
+        <circle cx="45" cy="45" r="34" class="ring-fill" style="--dash: {{ ring_dash }}"/>
+      </svg>
+      <div class="ring-label"><strong class="num">{{ collection_rate }}%</strong><span>paid</span></div>
+    </div>
+    <p class="muted small center">${{ billed_paid|floatformat:0|intcomma }} of ${{ billed|floatformat:0|intcomma }} billed this month</p>
+  </article>
+</section>
+
+<section class="dash-grid">
+  <article class="card card-flush">
+    <div class="card-head card-head-pad">
+      <span class="card-title"><i class="ti ti-files"></i> Recent invoices</span>
+      <div class="chips" id="status-chips">
+        <button type="button" class="chip is-active" data-filter="all">All</button>
+        <button type="button" class="chip" data-filter="sent">Sent</button>
+        <button type="button" class="chip" data-filter="overdue">Overdue</button>
+        <button type="button" class="chip" data-filter="paid">Paid</button>
+      </div>
+    </div>
+    <table class="table">
+      <tbody>
+        {% for invoice in recent %}
+        <tr class="js-recent-row" data-status="{{ invoice.display_status }}">
+          <td>
+            <a href="{% url 'invoice_detail' invoice.pk %}" class="who">
+              <span class="avatar avatar-sm">{{ invoice.client.initials }}</span>
+              <div><strong>{{ invoice.client }}</strong><small class="mono">{{ invoice.number }}</small></div>
+            </a>
+          </td>
+          <td class="muted">Due {{ invoice.due_date|date:"M j" }}</td>
+          <td class="right num">${{ invoice.total|floatformat:2|intcomma }}</td>
+          <td class="right"><span class="pill pill-{{ invoice.display_status }}">{{ invoice.display_status|capfirst }}</span></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    <p class="empty is-hidden" id="no-recent">No recent invoices with that status.</p>
+  </article>
+
+  <article class="card">
+    <div class="card-head">
+      <span class="card-title"><i class="ti ti-calendar-due"></i> Due this week</span>
+    </div>
+    {% if due_soon %}
+    <ul class="due-list">
+      {% for row in due_soon %}
+      <li>
+        <span class="date-chip"><small>{{ row.invoice.due_date|date:"M" }}</small>{{ row.invoice.due_date|date:"j" }}</span>
+        <a href="{% url 'invoice_detail' row.invoice.pk %}" class="due-info">
+          <strong>{{ row.invoice.client }}</strong>
+          <small class="num">${{ row.invoice.total|floatformat:2|intcomma }}</small>
+        </a>
+        <a href="{{ row.reminder }}" class="btn btn-icon btn-sm" aria-label="Email {{ row.invoice.client }}" title="Email a reminder"><i class="ti ti-mail-forward"></i></a>
+      </li>
+      {% endfor %}
+    </ul>
+    {% else %}
+    <p class="quiet"><i class="ti ti-mood-smile"></i> Nothing due in the next 7 days.</p>
+    {% endif %}
+  </article>
+</section>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+{% load static %}
+<script src="{% static 'js/dashboard.js' %}"></script>
 {% endblock %}
