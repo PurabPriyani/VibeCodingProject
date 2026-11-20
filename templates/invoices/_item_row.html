@@ -1,0 +1,16 @@
+<div class="item-row js-item-row{% if item.DELETE.value %} is-removed{% endif %}">
+  {{ item.id }}
+  <div class="item-cell {% if item.description.errors %}has-error{% endif %}">{{ item.description }}</div>
+  <div class="item-cell {% if item.quantity.errors %}has-error{% endif %}">{{ item.quantity }}</div>
+  <div class="item-cell {% if item.unit_price.errors %}has-error{% endif %}">{{ item.unit_price }}</div>
+  <div class="item-amount num js-line-total">$0.00</div>
+  <div class="item-remove">
+    <span class="is-hidden">{{ item.DELETE }}</span>
+    <button type="button" class="btn btn-icon btn-sm js-remove-item" aria-label="Remove line"><i class="ti ti-x"></i></button>
+  </div>
+  {% if item.errors %}
+    <p class="error-text item-error">
+      {% for field in item %}{% for error in field.errors %}{{ field.label }}: {{ error }} {% endfor %}{% endfor %}
+    </p>
+  {% endif %}
+</div>

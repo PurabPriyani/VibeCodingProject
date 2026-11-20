@@ -24,6 +24,12 @@
         <a href="{% url 'dashboard' %}" class="nav-link {% if page == 'dashboard' %}is-active{% endif %}">
           <i class="ti ti-layout-dashboard"></i> Dashboard
         </a>
+        <a href="{% url 'invoice_list' %}" class="nav-link {% if page == 'invoice_list' or page == 'invoice_create' or page == 'invoice_edit' or page == 'invoice_detail' %}is-active{% endif %}">
+          <i class="ti ti-file-invoice"></i> Invoices
+        </a>
+        <a href="{% url 'client_list' %}" class="nav-link {% if page == 'client_list' %}is-active{% endif %}">
+          <i class="ti ti-users"></i> Clients
+        </a>
         <a href="{% url 'settings' %}" class="nav-link {% if page == 'settings' %}is-active{% endif %}">
           <i class="ti ti-settings"></i> Settings
         </a>

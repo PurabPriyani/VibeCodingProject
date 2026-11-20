@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+
+{% block title %}{% if is_new %}New invoice{% else %}Edit {{ invoice.number }}{% endif %}{% endblock %}
+
+{% block content %}
+<header class="page-head">
+  <div>
+    <a href="{% url 'invoice_list' %}" class="back-link"><i class="ti ti-arrow-left"></i> Invoices</a>
+    <h1>{% if is_new %}New invoice{% else %}Edit <span class="mono-title">{{ invoice.number }}</span>{% endif %}</h1>
+  </div>
+</header>
+
+{% if not has_clients %}
+<section class="card empty">
+  <i class="ti ti-user-plus"></i>
+  <h3>Add a client first</h3>
+  <p>Every invoice needs someone to bill.</p>
+  <a href="{% url 'client_list' %}" class="btn btn-primary"><i class="ti ti-users"></i> Go to clients</a>
+</section>
+{% else %}
+<form method="post" class="invoice-layout" id="invoice-form" data-tax-rate="{{ tax_rate }}" novalidate>
+  {% csrf_token %}
+
+  <div class="invoice-main">
+    <section class="card">
+      <div class="card-head">
+        <span class="card-title"><i class="ti ti-file-description"></i> Details</span>
+      </div>
+      <div class="form-grid form-grid-3">
+        {% include "invoices/_field.html" with field=form.client %}
+        {% include "invoices/_field.html" with field=form.issue_date %}
+        {% include "invoices/_field.html" with field=form.terms %}
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="card-head">
+        <span class="card-title"><i class="ti ti-list-details"></i> Line items</span>
+      </div>
+
+      {{ formset.management_form }}
+      {% if formset.non_form_errors %}
+        <p class="error-text form-error">Add at least one line item before saving.</p>
+      {% endif %}
+
+      <div class="items-head">
+        <span>Description</span>
+        <span>Qty</span>
+        <span>Price</span>
+        <span class="right">Amount</span>
+        <span></span>
+      </div>
+
+      <div id="items">
+        {% for item in formset %}
+          {% include "invoices/_item_row.html" with item=item %}
+        {% endfor %}
+      </div>
+
+      <template id="item-template">
+        {% include "invoices/_item_row.html" with item=formset.empty_form %}
+      </template>
+
+      <button type="button" class="btn btn-sm add-item" id="add-item"><i class="ti ti-plus"></i> Add line</button>
+    </section>
+
+    <section class="card">
+      {% include "invoices/_field.html" with field=form.notes %}
+    </section>
+  </div>
+
+  <aside class="card summary">
+    <div class="card-head">
+      <span class="card-title"><i class="ti ti-calculator"></i> Summary</span>
+    </div>
+
+    <dl class="totals">
+      <div><dt>Subtotal</dt><dd class="num" id="subtotal">$0.00</dd></div>
+      <div>
+        <dt>{% if tax_rate %}HST ({{ tax_rate|floatformat:"-2" }}%){% else %}No HST{% endif %}</dt>
+        <dd class="num" id="tax">$0.00</dd>
+      </div>
+      <div class="totals-grand"><dt>Total</dt><dd class="num" id="total">$0.00</dd></div>
+    </dl>
+
+    <p class="due-note"><i class="ti ti-calendar-event"></i> Due <strong id="due-date">—</strong></p>
+
+    <button type="submit" class="btn btn-primary btn-block"><i class="ti ti-device-floppy"></i> {% if is_new %}Save invoice{% else %}Save changes{% endif %}</button>
+    <a href="{% url 'invoice_list' %}" class="btn btn-block">Cancel</a>
+  </aside>
+</form>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+{% load static %}
+<script src="{% static 'js/invoice-form.js' %}"></script>
+{% endblock %}

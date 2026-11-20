@@ -471,7 +471,7 @@ textarea:focus {
 
 .toasts {
   position: fixed;
-  top: 22px;
+  bottom: 22px;
   right: 22px;
   z-index: 50;
   display: flex;
@@ -509,7 +509,7 @@ textarea:focus {
 @keyframes toast-in {
   from {
     opacity: 0;
-    transform: translateY(-8px);
+    transform: translateY(8px);
   }
 }
 
@@ -550,4 +550,354 @@ textarea:focus {
   margin-bottom: 6px;
   color: var(--text);
   font-size: 17px;
+}
+
+.is-hidden,
+.is-removed,
+[hidden] {
+  display: none !important;
+}
+
+/* ---------- Search and tabs ---------- */
+
+.search {
+  position: relative;
+  display: block;
+  width: 260px;
+}
+
+.search .ti {
+  position: absolute;
+  top: 50%;
+  left: 13px;
+  transform: translateY(-50%);
+  color: var(--muted);
+  font-size: 17px;
+  pointer-events: none;
+}
+
+.search input {
+  height: 40px;
+  padding-left: 38px;
+}
+
+.tabs {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 18px;
+  padding: 4px;
+  width: fit-content;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--bg-raised);
+}
+
+.tab {
+  padding: 7px 14px;
+  border-radius: 8px;
+  color: var(--muted);
+  font-weight: 500;
+  font-size: 13px;
+  transition: background 0.2s var(--ease), color 0.2s var(--ease);
+}
+
+.tab:hover {
+  color: var(--text);
+}
+
+.tab.is-active {
+  background: var(--panel-hover);
+  color: var(--text);
+  box-shadow: inset 0 0 0 1px var(--line-strong);
+}
+
+/* ---------- Tables ---------- */
+
+.card-flush {
+  padding: 4px 0;
+  overflow: hidden;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.table th {
+  padding: 12px 22px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  text-align: left;
+  text-transform: uppercase;
+  border-bottom: 1px solid var(--line);
+}
+
+.table td {
+  padding: 14px 22px;
+  border-bottom: 1px solid var(--line);
+  vertical-align: middle;
+}
+
+.table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.table tbody tr {
+  transition: background 0.15s var(--ease);
+}
+
+.table tbody tr:hover {
+  background: var(--panel-hover);
+}
+
+.right,
+.table .right {
+  text-align: right;
+}
+
+.who {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.who div {
+  display: flex;
+  flex-direction: column;
+}
+
+.who strong {
+  font-weight: 600;
+}
+
+.who small {
+  color: var(--muted);
+  font-size: 12.5px;
+}
+
+.row-actions {
+  display: inline-flex;
+  gap: 6px;
+}
+
+/* ---------- Status pills ---------- */
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.pill::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.pill-draft {
+  background: var(--grey-soft);
+  color: #aeb6c3;
+}
+
+.pill-sent {
+  background: var(--blue-soft);
+  color: var(--blue);
+}
+
+.pill-paid {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.pill-overdue {
+  background: var(--danger-soft);
+  color: var(--danger);
+}
+
+/* ---------- Modal ---------- */
+
+.modal {
+  width: min(560px, calc(100vw - 32px));
+  padding: 24px 26px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-lg);
+  background: var(--panel);
+  color: var(--text);
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.55);
+}
+
+.modal[open] {
+  animation: modal-in 0.25s var(--ease);
+}
+
+.modal::backdrop {
+  background: rgba(5, 8, 12, 0.65);
+  backdrop-filter: blur(3px);
+}
+
+.modal-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.modal-head h2 {
+  font-size: 19px;
+}
+
+@keyframes modal-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.98);
+  }
+}
+
+/* ---------- Invoice builder ---------- */
+
+.back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 8px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.back-link:hover {
+  color: var(--text);
+}
+
+.mono-title {
+  font-family: var(--font-mono);
+  font-weight: 500;
+}
+
+.invoice-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 320px;
+  gap: 20px;
+  align-items: start;
+}
+
+.invoice-main {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.form-grid-3 {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.items-head,
+.item-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 90px 120px 110px 40px;
+  gap: 10px;
+  align-items: center;
+}
+
+.items-head {
+  padding-bottom: 8px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.item-row {
+  padding: 8px 0;
+  border-top: 1px solid var(--line);
+}
+
+.item-cell.has-error input {
+  border-color: var(--danger);
+}
+
+.item-amount {
+  text-align: right;
+  font-size: 14.5px;
+}
+
+.item-error {
+  grid-column: 1 / -1;
+}
+
+.form-error {
+  margin-bottom: 12px;
+}
+
+.add-item {
+  margin-top: 12px;
+}
+
+.summary {
+  position: sticky;
+  top: 24px;
+}
+
+.totals {
+  margin: 0 0 18px;
+}
+
+.totals div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 9px 0;
+  color: var(--text-soft);
+}
+
+.totals dd {
+  margin: 0;
+  color: var(--text);
+}
+
+.totals-grand {
+  margin-top: 6px;
+  padding-top: 16px !important;
+  border-top: 1px solid var(--line);
+}
+
+.totals-grand dt {
+  color: var(--text);
+  font-weight: 600;
+}
+
+.totals-grand dd {
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--accent) !important;
+}
+
+.due-note {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 18px;
+  padding: 10px 12px;
+  border-radius: var(--radius);
+  background: var(--bg-raised);
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.due-note strong {
+  color: var(--text);
+  font-weight: 600;
+}
+
+.btn-block {
+  width: 100%;
+  margin-top: 8px;
 }

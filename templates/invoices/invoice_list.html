@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+{% load humanize %}
+
+{% block title %}Invoices{% endblock %}
+
+{% block content %}
+<header class="page-head">
+  <div>
+    <h1>Invoices</h1>
+    <p>Every invoice you've created, newest first.</p>
+  </div>
+  <div class="page-actions">
+    <label class="search">
+      <i class="ti ti-search"></i>
+      <input type="search" id="invoice-search" placeholder="Search number or client" autocomplete="off">
+    </label>
+    <a href="{% url 'invoice_create' %}" class="btn btn-primary"><i class="ti ti-plus"></i> New invoice</a>
+  </div>
+</header>
+
+<nav class="tabs">
+  {% for key, label in tabs %}
+    <a href="?status={{ key }}" class="tab {% if current == key %}is-active{% endif %}">{{ label }}</a>
+  {% endfor %}
+</nav>
+
+{% if invoices %}
+<section class="card card-flush">
+  <table class="table">
+    <thead>
+      <tr>
+        <th>Invoice</th>
+        <th>Client</th>
+        <th>Issued</th>
+        <th>Due</th>
+        <th class="right">Amount</th>
+        <th>Status</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for invoice in invoices %}
+      <tr class="js-invoice-row" data-search="{{ invoice.number|lower }} {{ invoice.client|lower }}">
+        <td><span class="mono">{{ invoice.number }}</span></td>
+        <td>
+          <div class="who">
+            <span class="avatar avatar-sm">{{ invoice.client.initials }}</span>
+            <strong>{{ invoice.client }}</strong>
+          </div>
+        </td>
+        <td class="muted">{{ invoice.issue_date|date:"M j, Y" }}</td>
+        <td class="muted">{{ invoice.due_date|date:"M j, Y" }}</td>
+        <td class="right num">${{ invoice.total|floatformat:2|intcomma }}</td>
+        <td><span class="pill pill-{{ invoice.display_status }}">{{ invoice.display_status|capfirst }}</span></td>
+        <td class="right">
+          <a href="{% url 'invoice_edit' invoice.pk %}" class="btn btn-icon btn-sm" aria-label="Edit {{ invoice.number }}"><i class="ti ti-pencil"></i></a>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  <p class="empty is-hidden" id="no-results">No invoices match that search.</p>
+</section>
+{% else %}
+<section class="card empty">
+  <i class="ti ti-file-invoice"></i>
+  <h3>Nothing in this list</h3>
+  <p>Invoices you create will show up here.</p>
+  <a href="{% url 'invoice_create' %}" class="btn btn-primary"><i class="ti ti-plus"></i> Create an invoice</a>
+</section>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+  // Quick filter on the rows already on the page, no reload needed.
+  const search = document.getElementById("invoice-search");
+  const rows = document.querySelectorAll(".js-invoice-row");
+  const noResults = document.getElementById("no-results");
+
+  search.addEventListener("input", function () {
+    const term = search.value.trim().toLowerCase();
+    let visible = 0;
+
+    rows.forEach(function (row) {
+      const match = row.dataset.search.includes(term);
+      row.hidden = !match;
+      if (match) {
+        visible++;
+      }
+    });
+
+    if (noResults) {
+      noResults.classList.toggle("is-hidden", visible > 0);
+    }
+  });
+</script>
+{% endblock %}

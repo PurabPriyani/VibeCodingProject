@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+{% load humanize %}
+
+{% block title %}Clients{% endblock %}
+
+{% block content %}
+<header class="page-head">
+  <div>
+    <h1>Clients</h1>
+    <p>Everyone you bill, and what they still owe you.</p>
+  </div>
+  <div class="page-actions">
+    <label class="search">
+      <i class="ti ti-search"></i>
+      <input type="search" id="client-search" placeholder="Search clients" autocomplete="off">
+    </label>
+    <button type="button" class="btn btn-primary" id="add-client"><i class="ti ti-user-plus"></i> Add client</button>
+  </div>
+</header>
+
+{% if clients %}
+<section class="card card-flush">
+  <table class="table">
+    <thead>
+      <tr>
+        <th>Client</th>
+        <th>Email</th>
+        <th class="right">Invoices</th>
+        <th class="right">Owes you</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for client in clients %}
+      <tr class="js-client-row" data-search="{{ client.name|lower }} {{ client.company|lower }} {{ client.email|lower }}">
+        <td>
+          <div class="who">
+            <span class="avatar avatar-sm">{{ client.initials }}</span>
+            <div>
+              <strong>{{ client.company|default:client.name }}</strong>
+              {% if client.company %}<small>{{ client.name }}</small>{% endif %}
+            </div>
+          </div>
+        </td>
+        <td class="muted">{{ client.email }}</td>
+        <td class="right">{{ client.invoice_count }}</td>
+        <td class="right num">{% if client.balance %}${{ client.balance|floatformat:2|intcomma }}{% else %}<span class="muted">—</span>{% endif %}</td>
+        <td class="right">
+          <div class="row-actions">
+            <button type="button" class="btn btn-icon btn-sm js-edit-client" aria-label="Edit {{ client }}"
+              data-id="{{ client.pk }}" data-name="{{ client.name }}" data-company="{{ client.company }}"
+              data-email="{{ client.email }}" data-phone="{{ client.phone }}" data-address="{{ client.address }}">
+              <i class="ti ti-pencil"></i>
+            </button>
+            <form method="post" action="{% url 'client_delete' client.pk %}" class="js-confirm" data-confirm="Delete {{ client }}?">
+              {% csrf_token %}
+              <button type="submit" class="btn btn-icon btn-sm btn-danger" aria-label="Delete {{ client }}"><i class="ti ti-trash"></i></button>
+            </form>
+          </div>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  <p class="empty is-hidden" id="no-results">No clients match that search.</p>
+</section>
+{% else %}
+<section class="card empty">
+  <i class="ti ti-users"></i>
+  <h3>Add your first client</h3>
+  <p>Clients you add here show up when you create an invoice.</p>
+</section>
+{% endif %}
+
+<dialog class="modal" id="client-modal" {% if open_modal %}data-open="true"{% endif %}>
+  <form method="post" novalidate>
+    {% csrf_token %}
+    <input type="hidden" name="client_id" id="client-id" value="{{ editing_id }}">
+
+    <div class="modal-head">
+      <h2 id="client-modal-title">{% if editing_id %}Edit client{% else %}New client{% endif %}</h2>
+      <button type="button" class="btn btn-icon btn-sm js-close-modal" aria-label="Close"><i class="ti ti-x"></i></button>
+    </div>
+
+    <div class="form-grid">
+      {% include "invoices/_field.html" with field=form.name %}
+      {% include "invoices/_field.html" with field=form.company %}
+      {% include "invoices/_field.html" with field=form.email %}
+      {% include "invoices/_field.html" with field=form.phone %}
+      {% include "invoices/_field.html" with field=form.address extra_class="field-full" %}
+    </div>
+
+    <div class="form-actions">
+      <button type="button" class="btn js-close-modal">Cancel</button>
+      <button type="submit" class="btn btn-primary"><i class="ti ti-check"></i> Save client</button>
+    </div>
+  </form>
+</dialog>
+{% endblock %}
+
+{% block scripts %}
+{% load static %}
+<script src="{% static 'js/clients.js' %}"></script>
+{% endblock %}
