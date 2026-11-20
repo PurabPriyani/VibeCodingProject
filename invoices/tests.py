@@ -156,6 +156,31 @@ class InvoiceViewTests(TestCase):
         invoice.refresh_from_db()
         self.assertEqual(invoice.status, Invoice.DRAFT)
 
+    def test_emails_have_the_invoice_attached_as_a_pdf(self):
+        invoice = Invoice.objects.create(client=self.client_record)
+        InvoiceItem.objects.create(invoice=invoice, description="Logo", quantity=1, unit_price=Decimal("100"))
+        self.client.post(reverse("invoice_send", args=[invoice.pk]))
+
+        filename, content, mimetype = mail.outbox[0].attachments[0]
+        self.assertEqual(filename, f"{invoice.number}.pdf")
+        self.assertEqual(mimetype, "application/pdf")
+        self.assertTrue(content.startswith(b"%PDF"))
+
+    def test_reminder_is_emailed_with_the_invoice(self):
+        old = timezone.localdate() - timedelta(days=30)
+        invoice = Invoice.objects.create(client=self.client_record, issue_date=old, terms=15, status=Invoice.SENT)
+        self.client.post(reverse("invoice_remind", args=[invoice.pk]))
+
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertIn("past due", mail.outbox[0].subject)
+        self.assertIn("15 days past due", mail.outbox[0].body)
+        self.assertEqual(mail.outbox[0].attachments[0][0], f"{invoice.number}.pdf")
+
+    def test_drafts_cannot_get_reminders(self):
+        invoice = Invoice.objects.create(client=self.client_record)
+        self.client.post(reverse("invoice_remind", args=[invoice.pk]))
+        self.assertEqual(len(mail.outbox), 0)
+
     def test_sent_invoices_cannot_be_edited_or_deleted(self):
         invoice = Invoice.objects.create(client=self.client_record, status=Invoice.SENT)
 

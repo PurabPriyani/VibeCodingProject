@@ -1,0 +1,24 @@
+{% extends "emails/base.html" %}
+
+{% block label %}Payment reminder · {{ invoice.number }}{% endblock %}
+
+{% block amount_color %}{% if invoice.is_overdue %}#b0473a{% else %}#0f8a6a{% endif %}{% endblock %}
+
+{% block intro %}
+<p style="margin:0 0 14px;font-size:15px;line-height:1.6;color:#4a5160;">
+  I hope you're doing well.
+  {% if invoice.is_overdue %}
+    This is a friendly reminder that invoice <strong style="color:#1d2129;">{{ invoice.number }}</strong> was due on {{ due }} and is now {{ invoice.days_overdue }} day{{ invoice.days_overdue|pluralize }} past due.
+  {% else %}
+    This is a quick reminder that invoice <strong style="color:#1d2129;">{{ invoice.number }}</strong> is due on {{ due }}.
+  {% endif %}
+</p>
+<p style="margin:0 0 22px;font-size:15px;line-height:1.6;color:#4a5160;">
+  For your convenience, a copy of the invoice is attached to this email. If you've already sent the payment, thank you, and please disregard this message.
+</p>
+{% endblock %}
+
+{% block closing %}
+If you have any questions about this invoice, simply reply to this email and I'll be happy to help.<br><br>
+Kind regards,<br>
+{% endblock %}

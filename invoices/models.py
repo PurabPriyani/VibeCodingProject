@@ -3,6 +3,7 @@ from decimal import Decimal
 
 from django.core.validators import MinValueValidator
 from django.db import models
+from django.urls import reverse
 from django.utils import timezone
 
 from .calculations import money, invoice_totals
@@ -102,6 +103,9 @@ class Invoice(models.Model):
 
     def __str__(self):
         return self.number
+
+    def get_absolute_url(self):
+        return reverse("invoice_detail", args=[self.pk])
 
     def save(self, *args, **kwargs):
         if not self.number:

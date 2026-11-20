@@ -24,8 +24,11 @@
 
     <button type="button" class="btn js-print"><i class="ti ti-printer"></i> Print / PDF</button>
 
-    {% if reminder_link %}
-      <a href="{{ reminder_link }}" class="btn"><i class="ti ti-mail-forward"></i> {% if invoice.is_overdue %}Send reminder{% else %}Email client{% endif %}</a>
+    {% if invoice.status == "sent" %}
+      <form method="post" action="{% url 'invoice_remind' invoice.pk %}" class="js-confirm" data-confirm="Email a payment reminder for {{ invoice.number }} to {{ invoice.client.email }}?">
+        {% csrf_token %}
+        <button type="submit" class="btn js-sending"><i class="ti ti-mail-forward"></i> {% if invoice.is_overdue %}Send reminder{% else %}Remind client{% endif %}</button>
+      </form>
     {% endif %}
 
     {% if invoice.status == "sent" %}

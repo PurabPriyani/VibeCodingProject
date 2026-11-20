@@ -1,15 +1,15 @@
-Hi {{ first_name }},
+{% load money %}Hi {{ first_name }},
 
-Here's invoice {{ invoice.number }} from {{ business.name }}.
+Thank you for your business. Your invoice {{ invoice.number }} from {{ business.name }} is attached to this email as a PDF.
 
-Amount due: ${{ invoice.total|floatformat:2 }} CAD
+Amount due: {{ invoice.total|cad }} CAD
 Due date:   {{ invoice.due_date|date:"F j, Y" }}
 
-{% for item in items %}- {{ item.description }} ({{ item.quantity|floatformat:"-2" }} x ${{ item.unit_price|floatformat:2 }}) = ${{ item.line_total|floatformat:2 }}
+{% for item in items %}- {{ item.description }} ({{ item.quantity|floatformat:"-2" }} x {{ item.unit_price|cad }}) = {{ item.line_total|cad }}
 {% endfor %}
-Subtotal: ${{ invoice.subtotal|floatformat:2 }}
-HST{% if invoice.tax_rate %} ({{ invoice.tax_rate|floatformat:"-2" }}%){% endif %}: ${{ invoice.tax_amount|floatformat:2 }}
-Total: ${{ invoice.total|floatformat:2 }} CAD
+Subtotal: {{ invoice.subtotal|cad }}
+HST{% if invoice.tax_rate %} ({{ invoice.tax_rate|floatformat:"-2" }}%){% endif %}: {{ invoice.tax_amount|cad }}
+Total: {{ invoice.total|cad }} CAD
 {% if invoice.notes %}
 {{ invoice.notes }}
 {% endif %}

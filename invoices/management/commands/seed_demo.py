@@ -7,7 +7,7 @@ to show during a demo.
 """
 
 import random
-from datetime import timedelta
+from datetime import datetime, time, timedelta
 from decimal import Decimal
 
 from django.core.management.base import BaseCommand
@@ -119,3 +119,8 @@ class Command(BaseCommand):
             invoice.sent_at = day
         invoice.paid_at = paid_on
         invoice.save()
+
+        # created_at is filled in automatically with "now", which made the
+        # activity timeline say an invoice was created after it was sent.
+        created = timezone.make_aware(datetime.combine(day, time(9, 0)))
+        Invoice.objects.filter(pk=invoice.pk).update(created_at=created)

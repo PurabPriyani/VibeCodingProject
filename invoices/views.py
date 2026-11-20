@@ -1,5 +1,4 @@
 from datetime import timedelta
-from urllib.parse import quote
 
 from django.contrib import messages
 from django.core.paginator import Paginator
@@ -8,9 +7,10 @@ from django.db.models import Count, ProtectedError, Q, Sum
 from django.db.models.functions import TruncMonth
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
+from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.decorators.http import require_POST
 
-from .emails import send_invoice_email
+from .emails import send_invoice_email, send_reminder_email
 from .forms import BusinessProfileForm, ClientForm, InvoiceForm, ItemFormSet
 from .models import BusinessProfile, Client, Invoice
 
@@ -71,7 +71,7 @@ def dashboard(request):
         "collection_rate": collection_rate,
         "monthly": _monthly_collected(month_start),
         "recent": Invoice.objects.select_related("client")[:6],
-        "due_soon": _due_soon(today, BusinessProfile.load()),
+        "due_soon": _due_soon(today),
     })
 
 
@@ -112,16 +112,12 @@ def _monthly_collected(month_start):
     return result
 
 
-def _due_soon(today, business):
-    upcoming = (
+def _due_soon(today):
+    return (
         Invoice.objects.select_related("client")
         .filter(status=Invoice.SENT, due_date__gte=today, due_date__lte=today + timedelta(days=7))
         .order_by("due_date")[:5]
     )
-    rows = []
-    for invoice in upcoming:
-        rows.append({"invoice": invoice, "reminder": _reminder_link(invoice, business)})
-    return rows
 
 
 # ---------- Clients ----------
@@ -250,7 +246,6 @@ def invoice_detail(request, pk):
     return render(request, "invoices/invoice_detail.html", {
         "invoice": invoice,
         "items": invoice.items.all(),
-        "reminder_link": _reminder_link(invoice, BusinessProfile.load()),
     })
 
 
@@ -280,6 +275,31 @@ def invoice_send(request, pk):
         messages.success(request, f"{invoice.number} sent again to {invoice.client.email}")
 
     return redirect("invoice_detail", pk=pk)
+
+
+@require_POST
+def invoice_remind(request, pk):
+    """Email the client a polite payment reminder with the invoice attached."""
+    invoice = get_object_or_404(Invoice.objects.select_related("client"), pk=pk)
+
+    # The dashboard also has reminder buttons, so go back to wherever the
+    # click came from (but only to a page on this site).
+    back = request.POST.get("next", "")
+    if not url_has_allowed_host_and_scheme(back, allowed_hosts={request.get_host()}):
+        back = invoice.get_absolute_url()
+
+    if invoice.status != Invoice.SENT:
+        messages.error(request, "Reminders are only for invoices that are waiting to be paid")
+        return redirect(back)
+
+    try:
+        send_reminder_email(invoice, BusinessProfile.load())
+    except Exception as error:
+        messages.error(request, f"Couldn't send the reminder ({error.__class__.__name__}). Check the email settings in .env")
+        return redirect(back)
+
+    messages.success(request, f"Reminder for {invoice.number} sent to {invoice.client.email}")
+    return redirect(back)
 
 
 @require_POST
@@ -317,36 +337,6 @@ def invoice_delete(request, pk):
     invoice.delete()
     messages.success(request, f"{number} deleted")
     return redirect("invoice_list")
-
-
-def _reminder_link(invoice, business):
-    """A mailto: link that opens the user's own email app with a polite reminder."""
-    if invoice.status != Invoice.SENT:
-        return ""
-
-    client_name = invoice.client.name.split()[0]
-    amount = f"${invoice.total:,.2f}"
-    due = invoice.due_date.strftime("%B %d, %Y")
-
-    if invoice.is_overdue:
-        subject = f"Reminder: invoice {invoice.number} is overdue"
-        opening = (
-            f"This is a friendly reminder that invoice {invoice.number} for {amount} "
-            f"was due on {due} and is now {invoice.days_overdue} days overdue."
-        )
-    else:
-        subject = f"Invoice {invoice.number} due {due}"
-        opening = f"Just a quick note that invoice {invoice.number} for {amount} is due on {due}."
-
-    body = (
-        f"Hi {client_name},\n\n"
-        f"{opening}\n\n"
-        "If you've already sent the payment, please ignore this message. "
-        "Otherwise, let me know if you have any questions.\n\n"
-        f"Thanks,\n{business.name}"
-    )
-
-    return f"mailto:{invoice.client.email}?subject={quote(subject)}&body={quote(body)}"
 
 
 def _invoice_form(request, invoice):

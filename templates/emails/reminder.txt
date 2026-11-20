@@ -1,0 +1,11 @@
+{% load money %}Hi {{ first_name }},
+
+I hope you're doing well. {% if invoice.is_overdue %}This is a friendly reminder that invoice {{ invoice.number }} for {{ invoice.total|cad }} CAD was due on {{ due }} and is now {{ invoice.days_overdue }} day{{ invoice.days_overdue|pluralize }} past due.{% else %}This is a quick reminder that invoice {{ invoice.number }} for {{ invoice.total|cad }} CAD is due on {{ due }}.{% endif %}
+
+For your convenience, a copy of the invoice is attached to this email. If you've already sent the payment, thank you, and please disregard this message.
+
+If you have any questions about this invoice, simply reply to this email and I'll be happy to help.
+
+Kind regards,
+{{ business.name }}
+{% if business.email %}{{ business.email }}{% endif %}

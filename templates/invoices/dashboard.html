@@ -128,14 +128,18 @@
     </div>
     {% if due_soon %}
     <ul class="due-list">
-      {% for row in due_soon %}
+      {% for invoice in due_soon %}
       <li>
-        <span class="date-chip"><small>{{ row.invoice.due_date|date:"M" }}</small>{{ row.invoice.due_date|date:"j" }}</span>
-        <a href="{% url 'invoice_detail' row.invoice.pk %}" class="due-info">
-          <strong>{{ row.invoice.client }}</strong>
-          <small class="num">{{ row.invoice.total|cad }}</small>
+        <span class="date-chip"><small>{{ invoice.due_date|date:"M" }}</small>{{ invoice.due_date|date:"j" }}</span>
+        <a href="{% url 'invoice_detail' invoice.pk %}" class="due-info">
+          <strong>{{ invoice.client }}</strong>
+          <small class="num">{{ invoice.total|cad }}</small>
         </a>
-        <a href="{{ row.reminder }}" class="btn btn-icon btn-sm" aria-label="Email {{ row.invoice.client }}" title="Email a reminder"><i class="ti ti-mail-forward"></i></a>
+        <form method="post" action="{% url 'invoice_remind' invoice.pk %}" class="js-confirm" data-confirm="Email a payment reminder to {{ invoice.client.email }}?">
+          {% csrf_token %}
+          <input type="hidden" name="next" value="{{ request.get_full_path }}">
+          <button type="submit" class="btn btn-icon btn-sm" aria-label="Remind {{ invoice.client }}" title="Email a reminder"><i class="ti ti-mail-forward"></i></button>
+        </form>
       </li>
       {% endfor %}
     </ul>
