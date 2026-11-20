@@ -1,0 +1,83 @@
+{% load money %}
+{% if page.object_list %}
+<section class="card card-flush">
+  <table class="table">
+    <thead>
+      <tr>
+        <th>Invoice</th>
+        <th>Client</th>
+        <th>Issued</th>
+        <th>Due</th>
+        <th class="right">Amount</th>
+        <th>Status</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for invoice in page.object_list %}
+      <tr>
+        <td><a href="{% url 'invoice_detail' invoice.pk %}" class="mono link">{{ invoice.number }}</a></td>
+        <td>
+          <div class="who">
+            <span class="avatar avatar-sm">{{ invoice.client.initials }}</span>
+            <strong>{{ invoice.client }}</strong>
+          </div>
+        </td>
+        <td class="muted">{{ invoice.issue_date|date:"M j, Y" }}</td>
+        <td class="muted">{{ invoice.due_date|date:"M j, Y" }}</td>
+        <td class="right num">{{ invoice.total|cad }}</td>
+        <td><span class="pill pill-{{ invoice.display_status }}">{{ invoice.display_status|capfirst }}</span></td>
+        <td class="right">
+          <a href="{% url 'invoice_detail' invoice.pk %}" class="btn btn-icon btn-sm" aria-label="Open {{ invoice.number }}"><i class="ti ti-chevron-right"></i></a>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <footer class="pager">
+    <span class="muted">
+      Showing {{ page.start_index }}–{{ page.end_index }} of {{ page.paginator.count }}
+    </span>
+
+    {% if page.paginator.num_pages > 1 %}
+    <nav class="pager-links" aria-label="Pages">
+      {% if page.has_previous %}
+        <a href="?status={{ current }}{% if search %}&q={{ search|urlencode }}{% endif %}&page={{ page.previous_page_number }}" class="page-link" aria-label="Previous page"><i class="ti ti-chevron-left"></i></a>
+      {% else %}
+        <span class="page-link is-disabled" aria-hidden="true"><i class="ti ti-chevron-left"></i></span>
+      {% endif %}
+
+      {% for number in page_links %}
+        {% if number == page.paginator.ELLIPSIS %}
+          <span class="page-gap">…</span>
+        {% elif number == page.number %}
+          <span class="page-link is-current" aria-current="page">{{ number }}</span>
+        {% else %}
+          <a href="?status={{ current }}{% if search %}&q={{ search|urlencode }}{% endif %}&page={{ number }}" class="page-link">{{ number }}</a>
+        {% endif %}
+      {% endfor %}
+
+      {% if page.has_next %}
+        <a href="?status={{ current }}{% if search %}&q={{ search|urlencode }}{% endif %}&page={{ page.next_page_number }}" class="page-link" aria-label="Next page"><i class="ti ti-chevron-right"></i></a>
+      {% else %}
+        <span class="page-link is-disabled" aria-hidden="true"><i class="ti ti-chevron-right"></i></span>
+      {% endif %}
+    </nav>
+    {% endif %}
+  </footer>
+</section>
+{% elif search %}
+<section class="card empty">
+  <i class="ti ti-search"></i>
+  <h3>No invoices match "{{ search }}"</h3>
+  <p>Try a client name or an invoice number like INV-2026-004.</p>
+</section>
+{% else %}
+<section class="card empty">
+  <i class="ti ti-file-invoice"></i>
+  <h3>Nothing in this list</h3>
+  <p>Invoices you create will show up here.</p>
+  <a href="{% url 'invoice_create' %}" class="btn btn-primary"><i class="ti ti-plus"></i> Create an invoice</a>
+</section>
+{% endif %}

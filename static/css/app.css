@@ -635,7 +635,7 @@ textarea:focus {
 }
 
 .table td {
-  padding: 14px 22px;
+  padding: 11px 22px;
   border-bottom: 1px solid var(--line);
   vertical-align: middle;
 }
@@ -1565,4 +1565,70 @@ textarea:focus {
   to {
     transform: rotate(360deg);
   }
+}
+
+/* ---------- Invoices pagination ---------- */
+
+.results {
+  transition: opacity 0.15s var(--ease);
+}
+
+.results.is-loading {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.pager {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px 22px;
+  border-top: 1px solid var(--line);
+  font-size: 13px;
+}
+
+.pager-links {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.page-link {
+  display: grid;
+  place-items: center;
+  min-width: 34px;
+  height: 34px;
+  padding: 0 8px;
+  border: 1px solid transparent;
+  border-radius: 9px;
+  color: var(--text-soft);
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  transition: background 0.15s var(--ease), border-color 0.15s var(--ease);
+}
+
+.page-link .ti {
+  font-size: 17px;
+}
+
+a.page-link:hover {
+  background: var(--panel-hover);
+  border-color: var(--line-strong);
+  color: var(--text);
+}
+
+.page-link.is-current {
+  background: var(--accent-soft);
+  border-color: rgba(94, 194, 166, 0.35);
+  color: var(--accent);
+}
+
+.page-link.is-disabled {
+  color: var(--line-strong);
+}
+
+.page-gap {
+  padding: 0 4px;
+  color: var(--muted);
 }

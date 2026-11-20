@@ -2,6 +2,7 @@ from datetime import timedelta
 from urllib.parse import quote
 
 from django.contrib import messages
+from django.core.paginator import Paginator
 from django.db import transaction
 from django.db.models import Count, ProtectedError, Q, Sum
 from django.db.models.functions import TruncMonth
@@ -181,6 +182,7 @@ def client_delete(request, pk):
 def invoice_list(request):
     today = timezone.localdate()
     current = request.GET.get("status", "all")
+    search = request.GET.get("q", "").strip()
 
     invoices = Invoice.objects.select_related("client")
     if current == "draft":
@@ -192,19 +194,39 @@ def invoice_list(request):
     elif current == "paid":
         invoices = invoices.filter(status=Invoice.PAID)
 
-    tabs = [
+    # Search runs in the database so it finds invoices on every page,
+    # not just the 10 rows currently on screen.
+    if search:
+        invoices = invoices.filter(
+            Q(number__icontains=search)
+            | Q(client__name__icontains=search)
+            | Q(client__company__icontains=search)
+        )
+
+    paginator = Paginator(invoices, 10)
+    page = paginator.get_page(request.GET.get("page"))
+
+    context = {
+        "page": page,
+        "page_links": paginator.get_elided_page_range(page.number, on_each_side=1, on_ends=1),
+        "current": current,
+        "search": search,
+    }
+
+    # When the page's JavaScript asks for the next page (or a different tab
+    # or search), only the table part is sent back and swapped in, so the
+    # rest of the page doesn't reload.
+    if request.headers.get("X-Requested-With") == "fetch":
+        return render(request, "invoices/_invoice_results.html", context)
+
+    context["tabs"] = [
         ("all", "All"),
         ("draft", "Drafts"),
         ("sent", "Awaiting payment"),
         ("overdue", "Overdue"),
         ("paid", "Paid"),
     ]
-
-    return render(request, "invoices/invoice_list.html", {
-        "invoices": invoices,
-        "tabs": tabs,
-        "current": current,
-    })
+    return render(request, "invoices/invoice_list.html", context)
 
 
 def invoice_create(request):

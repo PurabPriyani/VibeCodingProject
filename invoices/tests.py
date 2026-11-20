@@ -170,6 +170,27 @@ class InvoiceViewTests(TestCase):
         self.client.post(reverse("client_delete", args=[self.client_record.pk]))
         self.assertTrue(Client.objects.filter(pk=self.client_record.pk).exists())
 
+    def test_invoice_list_shows_ten_per_page(self):
+        for i in range(12):
+            Invoice.objects.create(client=self.client_record)
+
+        first = self.client.get(reverse("invoice_list"))
+        self.assertEqual(len(first.context["page"].object_list), 10)
+
+        # The JavaScript asks for page 2 with this header and gets only the table back.
+        second = self.client.get(reverse("invoice_list") + "?page=2", HTTP_X_REQUESTED_WITH="fetch")
+        self.assertEqual(len(second.context["page"].object_list), 2)
+        self.assertNotContains(second, "<html")
+
+    def test_invoice_search_looks_past_the_first_page(self):
+        other = Client.objects.create(name="Arjun Mehta", company="Orbit Labs", email="a@orbit.io")
+        for i in range(12):
+            Invoice.objects.create(client=self.client_record)
+        Invoice.objects.create(client=other)
+
+        response = self.client.get(reverse("invoice_list") + "?q=orbit")
+        self.assertEqual(response.context["page"].paginator.count, 1)
+
     def test_every_page_loads(self):
         Invoice.objects.create(client=self.client_record, status=Invoice.SENT)
         for name in ["dashboard", "invoice_list", "invoice_create", "client_list", "settings"]:
